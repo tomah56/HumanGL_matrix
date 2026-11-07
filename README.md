@@ -26,28 +26,31 @@ From this repository root:
 
 ```sh
 make
-./humangl --arm
+./humangl --arms
 ```
 
-This shows an orange upper arm and blue forearm connected at the elbow. Moving
-the shoulder carries both blocks; bending the elbow moves the forearm. Each
-segment is one scaled unit cube. The elbow offset is calculated from the current
-upper-arm length, so resizing keeps the connection intact.
+This shows two mirrored arms, each with an orange upper arm and blue forearm.
+Their shoulders are 1.6 world units apart. Both arms share one pose and dimension
+set: moving a shoulder or elbow control moves the corresponding joints
+symmetrically, and resizing changes both matching segments. Each segment is one
+scaled unit cube; the elbow offset follows the current upper-arm length.
+The previous `--arm` command is an alias for the same two-arm demo.
 
 | Arm control | Effect |
 | --- | --- |
-| Q / E | Decrease / increase shoulder angle. |
-| A / D | Decrease / increase elbow angle. |
-| 1 / 2 | Shorten / lengthen the upper arm. |
-| 3 / 4 | Shorten / lengthen the forearm. |
-| 0 | Restore default joint angles and arm dimensions. |
-| Mouse drag | Rotate the whole arm. |
+| Q / E | Decrease / increase both shoulder angles symmetrically. |
+| A / D | Decrease / increase both elbow angles symmetrically. |
+| 1 / 2 | Shorten / lengthen both upper arms. |
+| 3 / 4 | Shorten / lengthen both forearms. |
+| 0 | Restore both arms' default joint angles and dimensions. |
+| Mouse drag | Rotate the whole pair. |
 | Escape | Close the window. |
 
 Joint keys support holding/repeat; length controls stop at 0.2 world units.
 Widths, depths, lengths, and initial pose can also be edited in
-[Arm.hpp](src/scene/Arm.hpp). The arm's current joint rotations are about local Z
-to make its first two-block articulation easy to see from the front.
+[Arm.hpp](src/scene/Arm.hpp). Joint rotations are about local Z; the left angles
+are negated to mirror the right. Spacing is the `shoulderSpacing` argument of
+`Arm::pairedModelMatrices()` and is measured in the parent frame.
 
 The earlier shared-cube demo remains available with `./humangl --cubes`.
 This shows three colored cubes using one shared unit-cube mesh and a matrix
@@ -108,9 +111,11 @@ and leaves the stack unchanged. `beginFrame(camera)` clears/uploads the camera
 once per frame; scene updates happen separately. The renderer owns its mesh
 buffers and fallback white texture, and borrows the shader program from its caller.
 
-The first articulated chain is implemented in [Arm.cpp](src/scene/Arm.cpp).
+The articulated chain is implemented in [Arm.cpp](src/scene/Arm.cpp).
 `Arm::modelMatrices(parent)` uses the stack to build two models, preserving the
 attachment frame and keeping drawing scale out of joint inheritance.
+`pairedModelMatrices(parent)` reuses that chain at left/right attachments with
+mirrored angles, producing four model matrices from the same control state.
 
 The remaining body parts and idle/walk/jump animation are the next implementation
 stages. Known inherited maths issues and current

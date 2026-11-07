@@ -40,3 +40,24 @@ std::array<MatrixStack::Matrix, 2> Arm::modelMatrices(const MatrixStack &parent)
     const auto forearm = segmentModel(joints, dimensions.forearm);
     return {upper, forearm};
 }
+
+std::array<MatrixStack::Matrix, 4> Arm::pairedModelMatrices(
+    const MatrixStack &parent, GLfloat shoulderSpacing) const {
+    if (!std::isfinite(shoulderSpacing) || shoulderSpacing <= 0.0f) {
+        throw std::invalid_argument("Shoulder spacing must be finite and positive");
+    }
+
+    std::array<MatrixStack::Matrix, 4> models;
+    for (int index = 0; index < 2; ++index) {
+        const GLfloat side = index == 0 ? -1.0f : 1.0f;
+        MatrixStack attachment = parent;
+        attachment.translate(side * shoulderSpacing / 2.0f, 0.0f, 0.0f);
+        Arm mirrored = *this;
+        mirrored.pose.shoulderDegrees *= side;
+        mirrored.pose.elbowDegrees *= side;
+        const auto armModels = mirrored.modelMatrices(attachment);
+        models[index * 2] = armModels[0];
+        models[index * 2 + 1] = armModels[1];
+    }
+    return models;
+}

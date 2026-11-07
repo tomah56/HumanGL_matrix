@@ -53,14 +53,14 @@ static void drawCubeDemo(const Render &render, const Transformation &transformat
     }
 }
 
-static void drawArm(const Render &render, const Arm &arm, const Transformation &transformation) {
+static void drawArms(const Render &render, const Arm &arm, const Transformation &transformation) {
     MatrixStack stack;
     stack.load(transformation.modelMatrix);
-    const auto models = arm.modelMatrices(stack);
+    const auto models = arm.pairedModelMatrices(stack);
     const array<array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
     for (size_t part = 0; part < models.size(); ++part) {
         stack.load(models[part]);
-        render.drawUnitCube(stack, colors[part]);
+        render.drawUnitCube(stack, colors[part % colors.size()]);
     }
 }
 
@@ -70,10 +70,10 @@ int main(int args, char* argv[]) {
     char *windowName = nullptr;
 
     const bool cubeDemo = args == 2 && string(argv[1]) == "--cubes";
-    const bool armDemo = args == 2 && string(argv[1]) == "--arm";
+    const bool armDemo = args == 2 && (string(argv[1]) == "--arms" || string(argv[1]) == "--arm");
     const bool primitiveDemo = cubeDemo || armDemo;
     if (!primitiveDemo && args != 3) {
-        cout << "Usage: ./humangl --arm\n"
+        cout << "Usage: ./humangl --arms (or --arm)\n"
              << "       ./humangl --cubes\n"
              << "       ./humangl models/cube.obj textureSources/wood.bmp" << endl;
         return args == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -85,7 +85,7 @@ int main(int args, char* argv[]) {
             mesh = renderModel.getMesh();
         }
 
-        Window window(width, height, armDemo ? "HumanGL | Upper arm and forearm" : windowName);
+        Window window(width, height, armDemo ? "HumanGL | Mirrored arms" : windowName);
 
         if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
             throw runtime_error("Failed to initialize GLAD");
@@ -107,7 +107,7 @@ int main(int args, char* argv[]) {
             transformation.transform.translationZ = -6.0f;
         }
         if (armDemo) {
-            transformation.transform.translationX = -0.6f;
+            transformation.transform.translationX = 0.0f;
             transformation.transform.translationY = 1.0f;
             transformation.transform.translationZ = -5.0f;
         }
@@ -120,8 +120,8 @@ int main(int args, char* argv[]) {
         // Set up user input
         window.setUpUserInput(inputData);
         if (armDemo) {
-            cout << "Arm: Q/E shoulder, A/D elbow, 1/2 upper-arm length, "
-                    "3/4 forearm length, 0 reset joints/lengths. Escape closes.\n";
+            cout << "Arms: Q/E both shoulders, A/D both elbows, 1/2 both upper-arm lengths, "
+                    "3/4 both forearm lengths, 0 reset both arms. Escape closes.\n";
         }
 
         // GLFW must be initialized before reading its timer.
@@ -150,7 +150,7 @@ int main(int args, char* argv[]) {
             camera.updateProjection();
             transformation.updateModelMatrix();
             render.beginFrame(camera);
-            if (armDemo) drawArm(render, arm, transformation);
+            if (armDemo) drawArms(render, arm, transformation);
             else if (cubeDemo) drawCubeDemo(render, transformation);
             else render.drawMesh(transformation.modelMatrix, material);
 

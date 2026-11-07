@@ -34,6 +34,88 @@ GLfloat axisLength(const MatrixStack::Matrix &matrix, int axis) {
     return std::sqrt(matrix[axis] * matrix[axis] + matrix[4 + axis] * matrix[4 + axis]
                      + matrix[8 + axis] * matrix[8 + axis]);
 }
+
+void expectMirrored(const std::array<MatrixStack::Matrix, 4> &models) {
+    for (int part = 0; part < 2; ++part) {
+        for (GLfloat y : {-0.5f, 0.0f, 0.5f}) {
+            const auto right = pointAt(models[part + 2], y);
+            expectPoint(pointAt(models[part], y), {-right[0], right[1], right[2]},
+                        "Arms must mirror across the parent's local X=0 plane");
+        }
+    }
+    expectConnected({models[0], models[1]});
+    expectConnected({models[2], models[3]});
+}
+
+void testPairedArms() {
+    Arm shared;
+    MatrixStack parent;
+    const auto original = parent.top();
+    shared.pose = {0.0f, 0.0f};
+    auto models = shared.pairedModelMatrices(parent, 2.0f);
+    expectPoint(pointAt(models[0], 0.5f), {-1.0f, 0.0f, 0.0f}, "Left shoulder spacing");
+    expectPoint(pointAt(models[2], 0.5f), {1.0f, 0.0f, 0.0f}, "Right shoulder spacing");
+    expectMirrored(models);
+
+    shared.pose = {20.0f, 65.0f};
+    models = shared.pairedModelMatrices(parent);
+    expectMirrored(models);
+    const auto beforeShoulder = models;
+    shared.pose.shoulderDegrees += 10.0f;
+    models = shared.pairedModelMatrices(parent);
+    require(models[0] != beforeShoulder[0] && models[2] != beforeShoulder[2],
+            "One shared shoulder angle must move both upper arms");
+    expectMirrored(models);
+
+    const auto beforeElbow = models;
+    shared.pose.elbowDegrees += 10.0f;
+    models = shared.pairedModelMatrices(parent);
+    require(models[0] == beforeElbow[0] && models[2] == beforeElbow[2],
+            "Shared elbow movement must preserve both upper arms");
+    require(models[1] != beforeElbow[1] && models[3] != beforeElbow[3],
+            "One shared elbow angle must move both forearms");
+    expectMirrored(models);
+
+    shared.dimensions.upper.length += 0.6f;
+    models = shared.pairedModelMatrices(parent);
+    expectMirrored(models);
+    for (int forearm : {1, 3}) {
+        require(std::fabs(axisLength(models[forearm], 1) - shared.dimensions.forearm.length) < 1e-5f,
+                "Resizing upper arms must preserve both forearm lengths");
+    }
+    const auto beforeForearm = models;
+    shared.dimensions.forearm.length += 0.4f;
+    models = shared.pairedModelMatrices(parent);
+    require(models[0] == beforeForearm[0] && models[2] == beforeForearm[2],
+            "Shared forearm resizing must preserve both upper arms");
+    expectMirrored(models);
+    require(shared.pose.shoulderDegrees == 30.0f && shared.pose.elbowDegrees == 75.0f,
+            "Mirroring must not change the shared control values");
+    require(parent.top() == original && parent.size() == 1, "Paired arms preserve the parent");
+
+    models = shared.pairedModelMatrices(parent, 3.0f);
+    expectPoint(pointAt(models[0], 0.5f), {-1.5f, 0.0f, 0.0f}, "Changed left spacing");
+    expectPoint(pointAt(models[2], 0.5f), {1.5f, 0.0f, 0.0f}, "Changed right spacing");
+
+    shared = Arm{};
+    shared.pose = {0.0f, 0.0f};
+    parent.translate(5.0f, 3.0f, -4.0f);
+    parent.rotateZ(90.0f);
+    const auto root = parent.top();
+    models = shared.pairedModelMatrices(parent, 2.0f);
+    expectPoint(pointAt(models[0], 0.5f), {5.0f, 2.0f, -4.0f}, "Left shoulder inherits root rotation");
+    expectPoint(pointAt(models[2], 0.5f), {5.0f, 4.0f, -4.0f}, "Right shoulder inherits root rotation");
+    expectPoint(pointAt(models[1], -0.5f), {7.6f, 2.0f, -4.0f}, "Left wrist inherits root motion");
+    expectPoint(pointAt(models[3], -0.5f), {7.6f, 4.0f, -4.0f}, "Right wrist inherits root motion");
+    for (GLfloat bad : {0.0f, -1.0f, std::numeric_limits<GLfloat>::infinity(),
+                        std::numeric_limits<GLfloat>::quiet_NaN()}) {
+        bool rejected = false;
+        try { shared.pairedModelMatrices(parent, bad); }
+        catch (const std::invalid_argument &) { rejected = true; }
+        require(rejected && parent.top() == root && parent.size() == 1,
+                "Invalid spacing must preserve the parent");
+    }
+}
 }
 
 int main() {
@@ -124,7 +206,8 @@ int main() {
         catch (const std::overflow_error &) { rejected = true; }
         require(rejected && parent.top() == full && parent.size() == MatrixStack::capacity,
                 "An arm must not corrupt a full parent stack");
-        std::cout << "Passed " << checks << " articulated-arm assertions.\n";
+        testPairedArms();
+        std::cout << "Passed " << checks << " single/mirrored-arm assertions.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Arm test failed: " << error.what() << '\n';

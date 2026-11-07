@@ -28,4 +28,10 @@ public:
     // Upper-arm and forearm models, in that order. The parent is the shoulder
     // attachment frame. Joint rotations are about local Z for this first demo.
     std::array<MatrixStack::Matrix, 2> modelMatrices(const MatrixStack &parent) const;
+
+    // Shared pose/dimensions for two arms. Shoulder attachments are spaced along
+    // parent X; left joint angles are negated to mirror the right arm.
+    // Order: left upper, left forearm, right upper, right forearm.
+    std::array<MatrixStack::Matrix, 4> pairedModelMatrices(
+        const MatrixStack &parent, GLfloat shoulderSpacing = 1.6f) const;
 };
