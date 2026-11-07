@@ -78,8 +78,9 @@ establish correctness of every matrix operation or the future hierarchy.
 4. **Matrix stack and first arm — implemented.** `MatrixStack` copies complete
    row-major matrices, keeps a base identity, and rejects overflow/underflow
    without mutation. The `--cubes` demo draws independent siblings from a shared
-   parent. `--arm` adds the first upper-arm/forearm chain with editable angles and
-   lengths. Completing the ten-part body remains the next stage.
+   parent. `--arms` (also `--arm`) reuses the upper-arm/forearm chain twice with
+   mirrored angles, shared controls, and separate shoulder attachments.
+   Completing the ten-part body remains the next stage.
 5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
    `makeUnitCubeMesh()` creates fixed ±0.5 geometry and 36 indices. Each renderer
    uploads that cube once. `drawUnitCube(stack, color)` reads the current matrix
@@ -132,10 +133,10 @@ scop classes. Example assets and the original scop project remain unchanged.
 4. **Inspect the frame boundary.** `beginFrame(camera)` clears once and uploads
    view/projection. Each part draw uploads its own model/color. Use
    `make test-render` to check draw counts, shared VAO, pixels, and stack state.
-5. **Inspect the implemented arm.** Read `scene/Arm.cpp` and run `./humangl --arm`.
-   The two blocks inherit the shoulder frame, while the forearm additionally
-   inherits the elbow rotation and upper length. Geometry scale is pushed/popped
-   separately. Change joint angles and lengths to see those dependencies.
+5. **Inspect the implemented arm pair.** Read `scene/Arm.cpp` and run
+   `./humangl --arms`. The same chain is evaluated at two shoulder attachments
+   using opposite angle signs and shared dimensions. Geometry scale is
+   pushed/popped separately; change a control to see both sides follow it.
 6. **Build all ten parts.** Add dimensions and pose data plus a `Humanoid` traversal
    with torso/head, two arm chains, and two leg chains. Calculate attachments from
    dimensions each frame. Ten body parts must reach the cube drawing method once
@@ -166,7 +167,7 @@ existing classes rather than introduce another window or rendering framework.
 - Linux compilation/rendering and manual interaction results are recorded in
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.
-- The first two-part arm is implemented; the complete humanoid and animation
+- Both two-part arms are implemented; the complete humanoid and animation
   system remain pending.
 
 ## Shared cube and stack checks
@@ -183,6 +184,11 @@ Ubuntu/Mesa/OpenGL 4.5 on 7 November 2026. The Mac sampler warning observed duri
 development was resolved by the renderer-owned white fallback texture; a later
 check passed without that warning.
 
-The next arm stage adds 96 numerical assertions and a GPU check of both connected
-segments. The CPU and hidden-render targets pass on macOS and Ubuntu. Use
-`./humangl --arm` to explore joint inheritance and length-dependent elbow placement.
+The arm tests now include 276 single/mirrored-chain assertions. Run
+`./humangl --arms` to explore shared joint controls, symmetric movement,
+length-dependent elbow placement, and configurable shoulder spacing. The render
+test checks orange/blue pixels on both sides, the gap between them, and exactly
+four draws for the pair.
+
+The updated single/mirrored-arm CPU tests and four-part rendering checks pass on
+macOS/OpenGL 4.1 and Ubuntu/Mesa/OpenGL 4.5.

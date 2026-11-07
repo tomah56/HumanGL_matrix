@@ -24,9 +24,9 @@ become available to cover the rest of the guide:
 It also includes 100 matrix-stack assertions for copying/restoring frames,
 composition, sibling independence, bounds, reset, and null inputs. A separate
 CPU executable checks the procedural cube's extent, closed surface, winding,
-and unit face areas. The new `testArm` executable adds 96 assertions for the first
-upper-arm/forearm chain: pivot positions, parent inheritance, isolated elbow
-rotation, resizing, unchanged child dimensions, and invalid inputs. The complete
+and unit face areas. `testArm` now runs 276 single/mirrored-arm assertions for
+pivot positions, parent inheritance, isolated elbow rotation, shared resizing,
+symmetry, shoulder spacing, unchanged child dimensions, and invalid inputs. The complete
 body's remaining joint relationships are still to implement.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
@@ -97,7 +97,7 @@ The current viewer commands, from the repository root, are:
 ```sh
 make
 make test
-./humangl --arm
+./humangl --arms
 ./humangl --cubes
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
@@ -119,12 +119,12 @@ The final renderer check includes the white sampler fallback and exits without
 OpenGL errors. The interactive `--cubes` mode is built; keyboard/mouse behavior
 has not been automated or manually exercised by these checks.
 
-The two-part arm stage also passes on both macOS/OpenGL 4.1 and Ubuntu/Mesa
-OpenGL 4.5: 96 arm assertions plus the existing suites. The updated render test
-checks an orange upper arm and blue forearm at their expected pixels, exactly
-two additional 36-index draws, no new geometry upload, and a preserved parent
-frame. Joint/resize keyboard controls are implemented; physical keyboard/mouse
-interaction remains a manual check.
+The mirrored-arm stage passes on both macOS/OpenGL 4.1 and Ubuntu/Mesa
+OpenGL 4.5: 276 arm assertions plus the existing suites. The render test checks
+orange upper arms and blue forearms on both sides, a gap between the arms,
+exactly four 36-index draws, no new geometry upload, and a preserved parent
+frame. Both arms use the same pose/dimensions and existing key controls;
+physical keyboard/mouse interaction remains a manual check.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented
