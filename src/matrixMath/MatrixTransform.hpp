@@ -7,6 +7,7 @@ class MatrixTransformException : public std::exception {
 public:
 	enum ErrorCode {
 		INVALID_MATRIX,
+		INVALID_PROJECTION,
 	};
 
 	explicit MatrixTransformException(ErrorCode err);
@@ -18,11 +19,15 @@ private:
 
 class MatrixTransform {
 public:
+	// Post-multiply row-major matrices by local-axis scaling; preserve translation.
 	static void scale(GLfloat *matrix, GLfloat scaleFactor);
+	static void scale(GLfloat *matrix, GLfloat x, GLfloat y, GLfloat z);
 	static void rotateX(GLfloat *matrix, GLfloat angleDegree);
 	static void rotateY(GLfloat *matrix, GLfloat angleDegree);
 	static void rotateZ(GLfloat *matrix, GLfloat angleDegree);
 	static void translate(GLfloat *matrix, GLfloat x, GLfloat y, GLfloat z);
+	// Replace the entire matrix. Finite inputs: 0 < FOV < 180 degrees,
+	// 0 < near < far, and aspect > 0.
 	static void perspective(GLfloat *matrix, GLfloat fov, GLfloat aspect, GLfloat near, GLfloat far);
 
 	static void loadIdentity(GLfloat *matrix);

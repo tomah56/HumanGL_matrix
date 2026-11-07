@@ -1,7 +1,7 @@
 #include "MatrixTransform.hpp"
 #include <glad/gl.h>
 #include <string.h>
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 
@@ -11,6 +11,7 @@ MatrixTransformException::MatrixTransformException(ErrorCode err)
 const char *MatrixTransformException::what() const noexcept {
 	switch (_errorCode) {
 		case INVALID_MATRIX: return "Invalid matrix";
+		case INVALID_PROJECTION: return "Invalid perspective parameters";
 		default: return "An unknown error occured during matrix transformation";
 	}
 }
@@ -18,11 +19,18 @@ const char *MatrixTransformException::what() const noexcept {
 
 // scale
 void MatrixTransform::scale(GLfloat *matrix, GLfloat scaleFactor) {
+    scale(matrix, scaleFactor, scaleFactor, scaleFactor);
+}
+
+void MatrixTransform::scale(GLfloat *matrix, GLfloat x, GLfloat y, GLfloat z) {
     if (!matrix) throw MatrixTransformException(MatrixTransformException::INVALID_MATRIX);
 
-    matrix[0] = matrix[0] * scaleFactor;
-    matrix[5] = matrix[5] * scaleFactor;
-    matrix[10] = matrix[10] * scaleFactor;
+    // M * S scales the first three columns, including their off-diagonal entries.
+    for (int row = 0; row < 4; ++row) {
+        matrix[row * 4] *= x;
+        matrix[row * 4 + 1] *= y;
+        matrix[row * 4 + 2] *= z;
+    }
 }
 
 
@@ -107,14 +115,21 @@ void MatrixTransform::multiply(GLfloat *m1, GLfloat *m2, GLfloat *result) {
 // other
 void MatrixTransform::perspective(GLfloat *matrix, GLfloat fov, GLfloat aspect, GLfloat near, GLfloat far) {
     if (!matrix) throw MatrixTransformException(MatrixTransformException::INVALID_MATRIX);
+    if (!std::isfinite(fov) || !std::isfinite(aspect) || !std::isfinite(near)
+        || !std::isfinite(far) || fov <= 0.0f || fov >= 180.0f || aspect <= 0.0f
+        || near <= 0.0f || far <= near) {
+        throw MatrixTransformException(MatrixTransformException::INVALID_PROJECTION);
+    }
 
-    GLfloat f = 1.0f / tan(degreesToRadians(fov) / 2.0f);
+    GLfloat f = 1.0f / std::tan(degreesToRadians(fov) / 2.0f);
+    GLfloat projection[16] = {};
 
-    matrix[0] = f / aspect;
-    matrix[5] = f;
-    matrix[10] = (far+near)/(near-far);
-    matrix[11] = (2*far*near)/(near-far);
-    matrix[14] = -1;
+    projection[0] = f / aspect;
+    projection[5] = f;
+    projection[10] = (far + near) / (near - far);
+    projection[11] = (2.0f * far * near) / (near - far);
+    projection[14] = -1.0f;
+    memcpy(matrix, projection, sizeof(projection));
 }
 
 GLfloat MatrixTransform::degreesToRadians(GLfloat degrees) {

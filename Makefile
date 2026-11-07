@@ -44,7 +44,11 @@ SRC =	src/main.cpp\
 OBJ_DIR = obj
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
-DEP = $(OBJ:.o=.d)
+TEST_NAME = $(OBJ_DIR)/tests/testMatrixTransform
+TEST_OBJ = $(OBJ_DIR)/tests/testMatrixTransform.o
+TEST_SUPPORT = $(OBJ_DIR)/src/matrixMath/MatrixTransform.o \
+	$(OBJ_DIR)/src/scene/Camera.o $(OBJ_DIR)/src/scene/Transformation.o
+DEP = $(OBJ:.o=.d) $(TEST_OBJ:.o=.d)
 
 all: $(NAME)
 
@@ -58,6 +62,12 @@ $(OBJ_DIR):
 $(NAME): $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(GLAD_INCLUDE) $(GLFW_INCLUDE) $(OBJ) -o $(NAME) $(GLFW_LIB)
 	@printf "$(GREEN)Compiled$(RESET)\n"
+
+test: $(TEST_NAME)
+	./$(TEST_NAME)
+
+$(TEST_NAME): $(TEST_OBJ) $(TEST_SUPPORT)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(OBJ_DIR)/%.o: %.cpp Makefile | $(OBJ_DIR) check-deps
 	@mkdir -p $(dir $@)
@@ -82,4 +92,4 @@ valgrind: $(NAME)
 			 --log-file=valgrind-out.txt \
 		 ./$(NAME) models/cube.obj textureSources/wood.bmp
 
-.PHONY: all check-deps clean fclean re valgrind
+.PHONY: all test check-deps clean fclean re valgrind

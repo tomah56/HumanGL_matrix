@@ -27,7 +27,7 @@ chat, rather than inheriting OBJ-viewer requirements from the separate subject.
 | [Window](../../src/window/Window.cpp) | GLFW initialization, 4.1 core context, events, and window lifetime. | Retain it; expose/query actual framebuffer dimensions and guard minimized frames. |
 | [ShaderProgram](../../src/shaders/ShaderProgram.cpp) and `src/shaderSources/` | Compile/link GLSL 410 and transform vertices with projection × view × model. | Keep the pipeline; add a plain body-color path that does not require a BMP. |
 | [Render](../../src/render/Render.cpp) and [RenderDraw](../../src/render/RenderDraw.cpp) | Upload an interleaved mesh and prepare one indexed draw. | Separate frame preparation from drawing an individual part. |
-| [MatrixTransform](../../src/matrixMath/MatrixTransform.cpp) | Identity, multiplication, translation, rotation, uniform scaling, perspective. | Correct the gaps below; add nonuniform scaling and a value-copy matrix stack. |
+| [MatrixTransform](../../src/matrixMath/MatrixTransform.cpp) | Identity, multiplication, translation, rotation, corrected uniform/nonuniform scaling and perspective. | Check the remaining Y-rotation convention; add a value-copy matrix stack. |
 | [Transformation](../../src/scene/Transformation.cpp) | Builds one model transform for the viewer. | Use its root manipulation for the whole character; keep joint poses separate. |
 | [Camera](../../src/scene/Camera.cpp) | Projection and resize aspect; view currently remains identity. | Implement a real view translation/look-at so the person can stand in world space. |
 | [InputHandler](../../src/inputHandler/InputHandler.cpp) | Keyboard/mouse callbacks and access to scene state. | Retain callbacks; add animation mode, pause/reset, and joint demonstration controls. |
@@ -57,21 +57,20 @@ call these helpers directly on a rotated stack top and assume post-multiplicatio
 
 ## Issues found before adding a skeleton
 
-The following are concrete findings from the inspected code and a CPU probe
-compiled against the copied `MatrixTransform.cpp`. They remain work for the next
-maths stage, so the inherited viewer is not yet a validated HumanGL math layer.
+The following were found in the imported code. Projection/scaling are now fixed
+and covered by `make test`; the other items remain pending. This does not yet
+establish correctness of every matrix operation or the future hierarchy.
 
-1. **Perspective leaves `matrix[15]` at 1.** `Camera::updateProjection()` starts
-   from identity, and `perspective()` never clears that value. Standard
-   perspective needs the bottom-right element to be 0, so clip w becomes −z.
-   Correct the full projection matrix and test near/far-plane depth. At the same
-   time, position the camera/model in front of the eye: the viewer currently
-   starts its model at Z=0, which the incorrect projection partly conceals.
-2. **Scale is uniform and touches only diagonal entries.** It works as a scale
-   builder when called on identity, as `Transformation` does. It is not a general
-   concatenate-scale operation. A probe of `Rz(90°)` followed by `scale(2)` leaves
-   a basis length of 1 instead of 2. Add an explicit `scale(x,y,z)` builder and
-   compose it using multiplication, rather than editing the stack top's diagonal.
+1. **Perspective — fixed.** The old builder left `matrix[15]` at 1. It now
+   replaces all 16 entries, sets that element to 0, and produces clip w=−z.
+   Tests check exact entries, near/far depth, and perspective size with distance.
+   Invalid/nonfinite frustum parameters throw without altering the output. The
+   default model now starts at Z=−2, so the corrected camera can see the cube.
+2. **Scaling — fixed.** The old implementation only multiplied diagonal entries.
+   `scale(matrix, x, y, z)` now post-multiplies by local-axis scaling, including
+   off-diagonal entries, while leaving translation unchanged. The existing
+   uniform overload delegates to it. It works on identity as a scale builder,
+   or on a composed matrix; tests cover rotation, translation, and separate axes.
 3. **Y rotation uses the opposite sign from the guide's right-hand convention.**
    `rotateY(+90°)` maps +Z to −X, while the chosen right-hand convention expects
    +X. Standardize the signs, including input direction, before defining a gait.
@@ -110,8 +109,9 @@ changes belong with the camera/frame preparation step.
 - **BMP header:** explicit `<cstdint>` and `std::uint16_t`/`std::uint32_t`, fixing
   missing type declarations with Linux's standard library without changing layout.
 
-Other imported source files and the example assets retain their scop contents.
-The maths problems above have been identified rather than silently redesigned.
+Those were the initial import changes. Subsequent corrections affect
+`MatrixTransform`, `Camera`, and the default model translation. Example assets
+and the original scop project remain unchanged.
 
 ## Build the project in this order
 
@@ -119,9 +119,10 @@ The maths problems above have been identified rather than silently redesigned.
    command in the root README. Locate context creation, the shader program,
    `MatrixTransform`, the uniform upload, and the single indexed draw.
 2. **Make the maths and camera trustworthy.** Retain row-major storage and degree
-   rotation APIs. Correct projection/Y convention, add independent axis scaling,
-   and check known transformed points. Move the camera to view the origin from
-   positive Z; set the initial model/global scale to 1 for the future unit body.
+   rotation APIs. Projection and axis scaling are implemented and tested; correct
+   the remaining Y convention and extend the point checks. Move the camera to
+   view the origin from positive Z; set the initial model/global scale to 1 for
+   the future unit body.
 3. **Create one unit cube and one drawing method.** Add a small cube `Mesh` builder
    with positions ±0.5 and 36 indices, retaining Render's existing vertex layout
    initially. Add a flat body-color shader path and remove the texture requirement
@@ -155,9 +156,12 @@ existing classes rather than introduce another window or rendering framework.
   cube loader, renderer, texture loader, and matrices: OpenGL 4.1 Metal; 36 cube
   indices; a colored center pixel; `GL_NO_ERROR`. It positioned/scaled the cube
   explicitly and did not test every input path or the complete viewer loop.
-- The CPU probe confirmed row-major multiplication order and reproduced the
-  perspective, rotated-scaling, and Y-direction findings above. These are
-  diagnostics of inherited gaps, not a passing matrix correctness suite.
+- `make test` now checks corrected projection/scaling, rejected frustums, safe
+  resize aspects, and the default cube's visibility. It needs no graphics context.
+  The initial CPU probe also identified the still-pending Y-direction issue.
+- On 7 November 2026, all 97 projection/scaling assertions passed on macOS and
+  Ubuntu. Fresh hidden-window probes rendered the cube using the application's
+  default transform on both platforms, with colored pixels and no OpenGL error.
 - Linux compilation/rendering and manual interaction results are recorded in
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.

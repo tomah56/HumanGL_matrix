@@ -29,6 +29,10 @@ make
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
 
+Run `make test` for the projection/scaling regression tests. They exercise the
+CPU maths and scene defaults without opening a window or linking OpenGL/GLFW;
+the project's development headers are still needed to compile the scene classes.
+
 This runs scop's existing OBJ viewer under the HumanGL executable name. Escape
 closes the window; mouse dragging rotates the model. Arrow keys and W/S translate
 it, with Shift increasing the step. Cmd/Ctrl+R toggles automatic rotation;
@@ -56,8 +60,14 @@ scop-based viewer and learning material. Small import fixes cover portable GLFW
 discovery, strict-compiler compatibility, timer initialization, and uploading
 initialized matrices to the active program.
 
+Projection and scaling are corrected: perspective replaces all matrix entries,
+and `MatrixTransform::scale(matrix, x, y, z)` composes local-axis scaling on
+rotated matrices. The original uniform-scale overload remains available. The
+default model starts at Z=−2, in front of the camera, and zero-size framebuffers
+preserve the last valid projection aspect.
+
 The matrix stack, unit cube, articulated body, and idle/walk/jump animation are
 the next implementation stages. Known inherited maths issues and current
 validation limits are recorded in the
-[scop adaptation guide](docs/learning/11-scop-base.md). Future interfaces and
-`make test` in the learning chapters describe work still to implement.
+[scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters
+describe tests for body, stack, and animation features still to implement.

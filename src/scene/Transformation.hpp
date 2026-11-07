@@ -19,7 +19,7 @@ struct AnimationState {
 struct Transform {
 	GLfloat translationX = 0.0f;
     GLfloat translationY = 0.0f;
-    GLfloat translationZ = 0.0f;
+    GLfloat translationZ = -2.0f;
 
 	GLfloat rotationX = 0.0f;
 	GLfloat rotationY = 0.0f;

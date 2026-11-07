@@ -10,8 +10,7 @@ Camera::Camera(GLfloat width, GLfloat height)
 }
 
 void Camera::updateProjection() {
-	MatrixTransform::loadIdentity(projectionMatrix);
-    MatrixTransform::perspective(projectionMatrix, fov, aspect, near, far);
+	MatrixTransform::perspective(projectionMatrix, fov, aspect, near, far);
 }
 
 void Camera::updateView() {
@@ -20,7 +19,8 @@ void Camera::updateView() {
 }
 
 void Camera::updateAspect(GLfloat width, GLfloat height) {
-	if (height == 0) height = 1.0f;
+	// Preserve the last valid projection while a framebuffer is minimized.
+	if (width <= 0.0f || height <= 0.0f) return;
 
 	aspect = width / height;
 }

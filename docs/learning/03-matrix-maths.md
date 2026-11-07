@@ -90,7 +90,10 @@ the local origin, rotates there, then offsets the cube away from that joint.
 
 Write a small CPU-only test executable as you implement the maths. Compare floats
 using a tolerance such as `1e-5` for these small examples, rather than exact
-equality. It should not need GLFW or OpenGL.
+equality. `make test` now checks projection, scale composition, resize aspect,
+and default-model visibility on the CPU. It uses the project's development
+headers but does not open a window or link to GLFW/OpenGL. Extend it with the
+remaining exercises as those operations become part of the corrected maths layer.
 
 | Exercise | Expected result |
 | --- | --- |

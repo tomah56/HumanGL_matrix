@@ -15,8 +15,11 @@ the still-pending body, stack, resizing, and animation checks below. See the
 
 ## Targeted numerical checks
 
-As the relevant functions become available, maintain a small CPU-only test target
-such as `make test`. It should run the meaningful cases from the guide:
+`make test` now runs projection/scaling regression checks, including near/far
+planes, stale matrix entries, invalid inputs, rotated/nonuniform scale,
+translation preservation, resize aspects, and default cube visibility. These are
+CPU checks without an OpenGL context. Extend the target as the relevant functions
+become available to cover the rest of the guide:
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
@@ -71,19 +74,26 @@ it does not prove that all matrix operations or joint relationships are correct.
 
 The Linux build first exposed missing integer-type declarations in the BMP
 header; explicit standard types fixed it, and the subsequent build/render check
-passed. A clean parallel rebuild passed on macOS. The numerical review reproduced
-the inherited maths issues listed in the adaptation guide; those issues are still
-pending correction, not a passing matrix test suite.
+passed. A clean parallel rebuild passed on macOS during adoption. Projection and
+scaling were subsequently corrected and have a regression suite; the remaining
+maths/hierarchy work is listed in the adaptation guide.
+
+On 7 November 2026, `make -j4 test all` passed on macOS and the equivalent
+`make -j2 all test` passed in Ubuntu: 97 assertions on each platform. Updated
+hidden-window probes also rendered the cube with the application's default model
+transform and the corrected projection on both platforms, without OpenGL errors.
+Keyboard/mouse interaction and the full body checks remain outside these checks.
 
 The current viewer commands, from the repository root, are:
 
 ```sh
 make
+make test
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
 
-Add a CPU-only `make test` target when implementing the maths corrections and
-stack. The removed triangle starter's `make check`/`--check` interface is not part
+Extend the CPU-only `make test` target when adding the stack and other maths.
+The removed triangle starter's `make check`/`--check` interface is not part
 of scop; the review used a separate temporary probe linked to the actual modules.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
