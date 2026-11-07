@@ -31,6 +31,6 @@ public:
 	static void perspective(GLfloat *matrix, GLfloat fov, GLfloat aspect, GLfloat near, GLfloat far);
 
 	static void loadIdentity(GLfloat *matrix);
-	static void multiply(GLfloat *m1, GLfloat *m2, GLfloat *result);
+	static void multiply(const GLfloat *m1, const GLfloat *m2, GLfloat *result);
 	static GLfloat degreesToRadians(GLfloat degrees);
 };

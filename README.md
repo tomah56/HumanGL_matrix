@@ -6,7 +6,7 @@ and a matrix stack, used to animate an articulated person with modern OpenGL.
 ## Start learning
 
 Read the [learning and research guide](docs/learning/README.md). It explains the
-assignment and provides a staged route from rendering a triangle to animating the
+assignment and provides a staged route from the scop viewer to animating the
 complete body, with exercises, pseudocode, research links, and evaluation checks.
 
 The implementation base is now your **scop project: C++20, GLFW, GLAD 2, and
@@ -26,12 +26,27 @@ From this repository root:
 
 ```sh
 make
-./humangl models/cube.obj textureSources/wood.bmp
+./humangl --cubes
 ```
 
-Run `make test` for the projection/scaling regression tests. They exercise the
-CPU maths and scene defaults without opening a window or linking OpenGL/GLFW;
+This shows three colored cubes using one shared unit-cube mesh and a matrix
+stack. The center cube and two sibling branches have independent local scales;
+the left branch also has a local rotation. Drag with the mouse to rotate the
+group; Cmd/Ctrl+R enables or disables automatic rotation. No OBJ/BMP is needed.
+
+Run `make test` for projection/scaling, matrix-stack, and cube-geometry checks.
+They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
+`make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
+one draw per cube, and stack preservation. It needs a display session. On a
+Linux machine with Xvfb/Mesa installed, run
+`LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
+
+The original viewer path is also available:
+
+```sh
+./humangl models/cube.obj textureSources/wood.bmp
+```
 
 This runs scop's existing OBJ viewer under the HumanGL executable name. Escape
 closes the window; mouse dragging rotates the model. Arrow keys and W/S translate
@@ -49,8 +64,8 @@ regeneration. All assets needed by the example command are included.
 | --- | --- |
 | `src/window/Window.*`, `src/inputHandler/` | Window, OpenGL 4.1 context, and input callbacks. |
 | `src/shaders/`, `src/shaderSources/` | Shader compilation/linking and model/view/projection uniforms. |
-| `src/render/` | VAO/VBO/EBO setup and the future shared unit-cube drawing function. |
-| `src/matrixMath/`, `src/scene/` | Custom maths, camera, and root transformations to extend. |
+| `src/render/` | Shared unit cube, VAO/VBO/EBO setup, frame preparation, and part drawing. |
+| `src/matrixMath/`, `src/scene/` | Custom maths, matrix stack, camera, and root transformations. |
 | `src/modelLoader/`, `src/texture/` | Existing viewer path; useful for reference, optional for the body. |
 
 ## Current status
@@ -66,8 +81,14 @@ rotated matrices. The original uniform-scale overload remains available. The
 default model starts at Z=−2, in front of the camera, and zero-size framebuffers
 preserve the last valid projection aspect.
 
-The matrix stack, unit cube, articulated body, and idle/walk/jump animation are
-the next implementation stages. Known inherited maths issues and current
+`MatrixStack` and `Render::drawUnitCube(stack, color)` are implemented. The
+renderer uploads its cube once, draws it with one 36-index call per invocation,
+and leaves the stack unchanged. `beginFrame(camera)` clears/uploads the camera
+once per frame; scene updates happen separately. The renderer owns its mesh
+buffers and fallback white texture, and borrows the shader program from its caller.
+
+The articulated body and idle/walk/jump animation are the next implementation
+stages. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters
 describe tests for body, stack, and animation features still to implement.

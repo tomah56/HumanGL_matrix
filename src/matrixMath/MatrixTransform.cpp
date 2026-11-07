@@ -95,7 +95,7 @@ void MatrixTransform::loadIdentity(GLfloat *matrix) {
 
 
 // matrix multiplication
-void MatrixTransform::multiply(GLfloat *m1, GLfloat *m2, GLfloat *result) {
+void MatrixTransform::multiply(const GLfloat *m1, const GLfloat *m2, GLfloat *result) {
     if (!m1 || !m2 || !result) throw MatrixTransformException(MatrixTransformException::INVALID_MATRIX);
 
     GLfloat temp[16];

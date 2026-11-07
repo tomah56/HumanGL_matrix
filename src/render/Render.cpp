@@ -1,4 +1,5 @@
 #include "Render.hpp"
+#include "UnitCube.hpp"
 #include <exception>
 #include <vector>
 #include <glad/gl.h>
@@ -18,19 +19,40 @@ const char *RenderException::what() const noexcept {
 	}
 }
 
-Render::Render(const Mesh &mesh, ShaderProgram &shaderProgram)
-	:  _mesh(mesh), _shaderProgram(shaderProgram)
+Render::Render(ShaderProgram &shaderProgram)
+	: _shaderProgram(shaderProgram)
 {
+	uploadMesh(makeUnitCubeMesh(), _cubeVAO, _cubeVBO, _cubeEBO);
+	// Keep the legacy sampler complete even when the shader uses only solid color.
+	const GLubyte white[] = {255, 255, 255, 255};
+	GLint previousTexture = 0;
+	glActiveTexture(GL_TEXTURE0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
+	glGenTextures(1, &_whiteTexture);
+	glBindTexture(GL_TEXTURE_2D, _whiteTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(previousTexture));
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glSettings();
+	uploadUniforms();
+}
 
-	// These commands set up the coordinates of the triangle to be rendered.
-	// They tell OpenGL the location in memory that the positions of the triangle will come from
+Render::Render(const Mesh &mesh, ShaderProgram &shaderProgram)
+	: Render(shaderProgram)
+{
+	_mesh = mesh;
+	if (!_mesh.indices.empty()) uploadMesh(_mesh, _VAO, _VBO, _EBO);
+}
 
-	glGenVertexArrays(1, &_VAO);
-	glBindVertexArray(_VAO);
+void Render::uploadMesh(const Mesh &mesh, GLuint &vao, GLuint &vbo, GLuint &ebo) {
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
-	glGenBuffers(1, &_VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, _VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * _mesh.vertices.size(), _mesh.vertices.data(), GL_STATIC_DRAW);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * mesh.vertices.size(), mesh.vertices.data(), GL_STATIC_DRAW);
 
 	int stride = 11 * sizeof(GLfloat);
 
@@ -50,20 +72,13 @@ Render::Render(const Mesh &mesh, ShaderProgram &shaderProgram)
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(8 * sizeof(float)));
 	glEnableVertexAttribArray(3);
 
-	glGenBuffers(1, &_EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * _mesh.indices.size(), _mesh.indices.data(), GL_STATIC_DRAW);
-
-	// Sets the color that will be used when clearing the screen
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-	glSettings();
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * mesh.indices.size(), mesh.indices.data(), GL_STATIC_DRAW);
 
 	// Unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
-	uploadUniforms();
 }
 
 // getters //
@@ -86,6 +101,8 @@ void Render::uploadUniforms() {
 	_uniformLocations.modelMatrix = glGetUniformLocation(_shaderProgram.getShaderProgram(), "modelMatrix");
 	_uniformLocations.viewMatrix = glGetUniformLocation(_shaderProgram.getShaderProgram(), "viewMatrix");
 	_uniformLocations.projectionMatrix = glGetUniformLocation(_shaderProgram.getShaderProgram(), "projectionMatrix");
+	_uniformLocations.useSolidColor = glGetUniformLocation(_shaderProgram.getShaderProgram(), "useSolidColor");
+	_uniformLocations.solidColor = glGetUniformLocation(_shaderProgram.getShaderProgram(), "solidColor");
 }
 
 void Render::glSettings() {
@@ -103,5 +120,11 @@ void Render::cleanUp() {
 	glDeleteVertexArrays(1, &_VAO);
 	glDeleteBuffers(1, &_EBO);
 	glDeleteBuffers(1, &_VBO);
-	_shaderProgram.deleteShaderProgram();
+	glDeleteVertexArrays(1, &_cubeVAO);
+	glDeleteBuffers(1, &_cubeEBO);
+	glDeleteBuffers(1, &_cubeVBO);
+	glDeleteTextures(1, &_whiteTexture);
+	_VAO = _VBO = _EBO = 0;
+	_cubeVAO = _cubeVBO = _cubeEBO = 0;
+	_whiteTexture = 0;
 }

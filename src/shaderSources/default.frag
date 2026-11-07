@@ -8,8 +8,14 @@ in vec3 FaceColor;
 uniform sampler2D tex;
 uniform float mixValue;  // 0.0 = colors, 1.0 = texture
 uniform bool useFaceColors;  // true = face colors, false = vertex colors
+uniform bool useSolidColor;
+uniform vec3 solidColor;
 
 void main() {
+    if (useSolidColor) {
+        FragColor = vec4(solidColor, 1.0);
+        return;
+    }
     vec4 colorFromVertices = vec4(VertexColor, 1.0);
     vec4 colorFromFaces = vec4(FaceColor, 1.0);
     vec4 colorFromTexture = texture(tex, TexCoord);

@@ -69,6 +69,7 @@ public:
 
 	int getScreenWidth() const;
 	int getScreenHeight() const;
+	void getFramebufferSize(int &width, int &height) const;
 
 	void setUpUserInput(InputData &inputData);
 	bool windowShouldClose() const;

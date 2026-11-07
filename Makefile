@@ -35,17 +35,21 @@ SRC =	src/main.cpp\
 		src/shaders/ShaderProgram.cpp\
 		src/render/Render.cpp\
 		src/render/RenderDraw.cpp\
+		src/render/UnitCube.cpp\
 		src/texture/Texture.cpp\
 		src/texture/BMPLoader.cpp\
 		src/matrixMath/MatrixTransform.cpp\
+		src/matrixMath/MatrixStack.cpp\
 		src/scene/Transformation.cpp\
 		src/scene/Camera.cpp
 
 OBJ_DIR = obj
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
-TEST_NAME = $(OBJ_DIR)/tests/testMatrixTransform
-TEST_OBJ = $(OBJ_DIR)/tests/testMatrixTransform.o
+TEST_NAMES = $(OBJ_DIR)/tests/testMatrixTransform $(OBJ_DIR)/tests/testMatrixStack \
+	$(OBJ_DIR)/tests/testUnitCube
+TEST_RENDER = $(OBJ_DIR)/tests/testRender
+TEST_OBJ = $(TEST_NAMES:%=%.o) $(TEST_RENDER).o
 TEST_SUPPORT = $(OBJ_DIR)/src/matrixMath/MatrixTransform.o \
 	$(OBJ_DIR)/src/scene/Camera.o $(OBJ_DIR)/src/scene/Transformation.o
 DEP = $(OBJ:.o=.d) $(TEST_OBJ:.o=.d)
@@ -63,11 +67,25 @@ $(NAME): $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(GLAD_INCLUDE) $(GLFW_INCLUDE) $(OBJ) -o $(NAME) $(GLFW_LIB)
 	@printf "$(GREEN)Compiled$(RESET)\n"
 
-test: $(TEST_NAME)
-	./$(TEST_NAME)
+test: $(TEST_NAMES)
+	./$(OBJ_DIR)/tests/testMatrixTransform
+	./$(OBJ_DIR)/tests/testMatrixStack
+	./$(OBJ_DIR)/tests/testUnitCube
 
-$(TEST_NAME): $(TEST_OBJ) $(TEST_SUPPORT)
+$(OBJ_DIR)/tests/testMatrixTransform: $(OBJ_DIR)/tests/testMatrixTransform.o $(TEST_SUPPORT)
 	$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(OBJ_DIR)/tests/testMatrixStack: $(OBJ_DIR)/tests/testMatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(OBJ_DIR)/tests/testUnitCube: $(OBJ_DIR)/tests/testUnitCube.o $(OBJ_DIR)/src/render/UnitCube.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+test-render: $(TEST_RENDER)
+	./$(TEST_RENDER)
+
+$(TEST_RENDER): $(TEST_RENDER).o $(filter-out $(OBJ_DIR)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $^ $(GLFW_LIB) -o $@
 
 $(OBJ_DIR)/%.o: %.cpp Makefile | $(OBJ_DIR) check-deps
 	@mkdir -p $(dir $@)
@@ -92,4 +110,4 @@ valgrind: $(NAME)
 			 --log-file=valgrind-out.txt \
 		 ./$(NAME) models/cube.obj textureSources/wood.bmp
 
-.PHONY: all test check-deps clean fclean re valgrind
+.PHONY: all test test-render check-deps clean fclean re valgrind

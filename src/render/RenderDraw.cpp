@@ -1,38 +1,35 @@
 #include "Render.hpp"
-#include "../scene/Transformation.hpp"
-#include "../scene/Camera.hpp"
-#include "../scene/Material.hpp"
 
-void Render::renderFrame(double deltaTime, Transformation &transformation, Camera &camera, Material &material) {
+void Render::beginFrame(const Camera &camera) const {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(_shaderProgram.getShaderProgram());
+    GLint texture = 0;
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture);
+    if (texture == 0) glBindTexture(GL_TEXTURE_2D, _whiteTexture);
+    glUniformMatrix4fv(_uniformLocations.viewMatrix, 1, GL_TRUE, camera.viewMatrix);
+    glUniformMatrix4fv(_uniformLocations.projectionMatrix, 1, GL_TRUE, camera.projectionMatrix);
+}
 
-	// Crears the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(_shaderProgram.getShaderProgram());
+void Render::drawUnitCube(const MatrixStack &stack, const std::array<GLfloat, 3> &color) const {
+    const MatrixStack::Matrix model = stack.top();
+    glUseProgram(_shaderProgram.getShaderProgram());
+    glUniformMatrix4fv(_uniformLocations.modelMatrix, 1, GL_TRUE, model.data());
+    glUniform1i(_uniformLocations.useSolidColor, GL_TRUE);
+    glUniform3fv(_uniformLocations.solidColor, 1, color.data());
+    glBindVertexArray(_cubeVAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+}
 
-
-	// Upload uniforms
-	glUniform1f(_uniformLocations.mixValue, material.materialBlend.mixValue);
-	glUniform1i(_uniformLocations.useFaceColors, material.materialBlend.faceColorMode);
-
-	if (transformation.animationState.isRotate) {
-		if (deltaTime >= 1 / 60) {
-			transformation.animationState.rotation += 0.25f * deltaTime * 60.0f;
-		}
-	}
-
-	if (material.materialBlend.mixValue < material.materialBlend.targetMixValue) {
-		material.materialBlend.mixValue += material.materialBlend.transitionSpeed * deltaTime;
-		if (material.materialBlend.mixValue > material.materialBlend.targetMixValue)
-			material.materialBlend.mixValue = material.materialBlend.targetMixValue;
-	} else if (material.materialBlend.mixValue > material.materialBlend.targetMixValue) {
-		material.materialBlend.mixValue -= material.materialBlend.transitionSpeed * deltaTime;
-		if (material.materialBlend.mixValue < material.materialBlend.targetMixValue)
-			material.materialBlend.mixValue = material.materialBlend.targetMixValue;
-	}
-
-	glUniformMatrix4fv(getUniformLocation().modelMatrix, 1, GL_TRUE, transformation.modelMatrix);
-	glUniformMatrix4fv(getUniformLocation().viewMatrix, 1, GL_TRUE, camera.viewMatrix);
-	glUniformMatrix4fv(getUniformLocation().projectionMatrix, 1, GL_TRUE, camera.projectionMatrix);
-
-	glBindVertexArray(getVAO());
+void Render::drawMesh(const GLfloat *modelMatrix, const Material &material) const {
+    if (!modelMatrix) throw MatrixTransformException(MatrixTransformException::INVALID_MATRIX);
+    if (_mesh.indices.empty()) throw RenderException(RenderException::ERR);
+    glUseProgram(_shaderProgram.getShaderProgram());
+    glUniformMatrix4fv(_uniformLocations.modelMatrix, 1, GL_TRUE, modelMatrix);
+    glUniform1i(_uniformLocations.useSolidColor, GL_FALSE);
+    glUniform1i(_uniformLocations.texture, 0);
+    glUniform1f(_uniformLocations.mixValue, material.materialBlend.mixValue);
+    glUniform1i(_uniformLocations.useFaceColors, material.materialBlend.faceColorMode);
+    glBindVertexArray(_VAO);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_mesh.indices.size()), GL_UNSIGNED_INT, nullptr);
 }

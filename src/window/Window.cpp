@@ -86,6 +86,10 @@ int Window::getScreenHeight() const {
 	return _height;
 }
 
+void Window::getFramebufferSize(int &width, int &height) const {
+	glfwGetFramebufferSize(_window, &width, &height);
+}
+
 // other //
 
 void Window::setUpUserInput(InputData &inputData) {
