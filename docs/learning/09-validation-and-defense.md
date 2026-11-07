@@ -24,7 +24,10 @@ become available to cover the rest of the guide:
 It also includes 100 matrix-stack assertions for copying/restoring frames,
 composition, sibling independence, bounds, reset, and null inputs. A separate
 CPU executable checks the procedural cube's extent, closed surface, winding,
-and unit face areas. Full limb/joint relationships remain to implement.
+and unit face areas. The new `testArm` executable adds 96 assertions for the first
+upper-arm/forearm chain: pivot positions, parent inheritance, isolated elbow
+rotation, resizing, unchanged child dimensions, and invalid inputs. The complete
+body's remaining joint relationships are still to implement.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
@@ -94,6 +97,7 @@ The current viewer commands, from the repository root, are:
 ```sh
 make
 make test
+./humangl --arm
 ./humangl --cubes
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
@@ -114,6 +118,13 @@ On 7 November 2026, the shared-cube/stack stage passed `make test` and
 The final renderer check includes the white sampler fallback and exits without
 OpenGL errors. The interactive `--cubes` mode is built; keyboard/mouse behavior
 has not been automated or manually exercised by these checks.
+
+The two-part arm stage also passes on both macOS/OpenGL 4.1 and Ubuntu/Mesa
+OpenGL 4.5: 96 arm assertions plus the existing suites. The updated render test
+checks an orange upper arm and blue forearm at their expected pixels, exactly
+two additional 36-index draws, no new geometry upload, and a preserved parent
+frame. Joint/resize keyboard controls are implemented; physical keyboard/mouse
+interaction remains a manual check.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented

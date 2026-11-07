@@ -4,6 +4,20 @@
 
 ## What you are learning
 
+The first two-part chain is now implemented in [Arm.cpp](../../src/scene/Arm.cpp).
+Run `./humangl --arm` for an upper arm and forearm, then use Q/E for the shoulder,
+A/D for the elbow, 1/2 for upper-arm length, and 3/4 for forearm length.
+`0` restores the default arm dimensions and pose. The demo uses local Z rotation
+for a clear front view; the X-axis movement described below is a later extension
+for the complete body's walking pose.
+
+`Arm::modelMatrices(parent)` evaluates the hierarchy on a copy of the parent
+stack and returns the two geometry model matrices. It rotates the shoulder,
+temporarily adds center-offset/scale for the upper block, restores the joint,
+translates by the upper length to reach the elbow, then rotates and shapes the
+forearm. The caller sends each result to the same `drawUnitCube()` method once.
+The remaining eight parts are still to implement.
+
 A joint frame is a moving coordinate system. For a child joint:
 
 ```text
@@ -123,6 +137,11 @@ primitive function; each part still reaches it once. Keep debug markers or other
 scene geometry out of that body count.
 
 ## Exercise and numerical checkpoint
+
+`make test` now includes the two-part arm cases below, plus inherited 3D root
+motion, resizing, isolated elbow movement, preserved forearm dimensions, unchanged
+parent stack, and rejected invalid dimensions/angles. `make test-render` also
+checks the visible upper-arm and forearm colors and exactly two indexed draws.
 
 Build just a shoulder and two arm segments first. Set the shoulder at the origin,
 upper length 2, lower length 1, and both angles to zero. The upper cube center is
