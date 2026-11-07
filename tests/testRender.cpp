@@ -1,6 +1,7 @@
 #include "../src/window/Window.hpp"
 #include "../src/render/Render.hpp"
 #include "../src/render/UnitCube.hpp"
+#include "../src/scene/Arm.hpp"
 
 #include <array>
 #include <iostream>
@@ -113,13 +114,33 @@ int main() {
         require(draws == 3 && clears == 2 && uploads == 0, "Mesh/cube paths share frame setup safely");
         require(glGetError() == GL_NO_ERROR, "Rendering raised an OpenGL error");
 
+        Arm arm;
+        arm.pose = {0.0f, 90.0f};
+        stack.reset();
+        stack.translate(0.0f, 1.0f, -4.0f);
+        const auto shoulder = stack.top();
+        const auto armModels = arm.modelMatrices(stack);
+        const std::array<std::array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
+        render.beginFrame(camera);
+        for (std::size_t part = 0; part < armModels.size(); ++part) {
+            MatrixStack segment;
+            segment.load(armModels[part]);
+            render.drawUnitCube(segment, colors[part]);
+        }
+        expectPixel(320, 320, {255, 153, 51});
+        expectPixel(410, 180, {64, 140, 255});
+        require(stack.top() == shoulder && stack.size() == 1, "Arm traversal preserves its shoulder frame");
+        require(draws == 5 && clears == 3 && uploads == 0 && indexedCubeDraws,
+                "Arm must use exactly two shared-cube draws without new uploads");
+        require(glGetError() == GL_NO_ERROR, "Arm rendering raised an OpenGL error");
+
         render.cleanUp();
         render.cleanUp();
         require(glIsProgram(shader.getShaderProgram()), "Renderer must not delete a borrowed shader program");
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, and cleanup checks.\n";
+                     "legacy mesh mode, articulated arm, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';

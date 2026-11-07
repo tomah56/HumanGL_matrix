@@ -26,20 +26,41 @@ From this repository root:
 
 ```sh
 make
-./humangl --cubes
+./humangl --arm
 ```
 
+This shows an orange upper arm and blue forearm connected at the elbow. Moving
+the shoulder carries both blocks; bending the elbow moves the forearm. Each
+segment is one scaled unit cube. The elbow offset is calculated from the current
+upper-arm length, so resizing keeps the connection intact.
+
+| Arm control | Effect |
+| --- | --- |
+| Q / E | Decrease / increase shoulder angle. |
+| A / D | Decrease / increase elbow angle. |
+| 1 / 2 | Shorten / lengthen the upper arm. |
+| 3 / 4 | Shorten / lengthen the forearm. |
+| 0 | Restore default joint angles and arm dimensions. |
+| Mouse drag | Rotate the whole arm. |
+| Escape | Close the window. |
+
+Joint keys support holding/repeat; length controls stop at 0.2 world units.
+Widths, depths, lengths, and initial pose can also be edited in
+[Arm.hpp](src/scene/Arm.hpp). The arm's current joint rotations are about local Z
+to make its first two-block articulation easy to see from the front.
+
+The earlier shared-cube demo remains available with `./humangl --cubes`.
 This shows three colored cubes using one shared unit-cube mesh and a matrix
 stack. The center cube and two sibling branches have independent local scales;
 the left branch also has a local rotation. Drag with the mouse to rotate the
 group; Cmd/Ctrl+R enables or disables automatic rotation. No OBJ/BMP is needed.
 
-Run `make test` for projection/scaling, matrix-stack, and cube-geometry checks.
+Run `make test` for projection/scaling, matrix-stack, cube-geometry, and arm checks.
 They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
 `make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
-one draw per cube, and stack preservation. It needs a display session. On a
-Linux machine with Xvfb/Mesa installed, run
+one draw per cube, arm rendering, and stack preservation. It needs a display
+session. On a Linux machine with Xvfb/Mesa installed, run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
 
 The original viewer path is also available:
@@ -87,7 +108,11 @@ and leaves the stack unchanged. `beginFrame(camera)` clears/uploads the camera
 once per frame; scene updates happen separately. The renderer owns its mesh
 buffers and fallback white texture, and borrows the shader program from its caller.
 
-The articulated body and idle/walk/jump animation are the next implementation
+The first articulated chain is implemented in [Arm.cpp](src/scene/Arm.cpp).
+`Arm::modelMatrices(parent)` uses the stack to build two models, preserving the
+attachment frame and keeping drawing scale out of joint inheritance.
+
+The remaining body parts and idle/walk/jump animation are the next implementation
 stages. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters

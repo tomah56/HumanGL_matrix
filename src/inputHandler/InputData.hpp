@@ -9,12 +9,14 @@ class Transformation;
 class Material;
 class Camera;
 class InputHandler;
+class Arm;
 
 struct InputData {
     Transformation* transformation;
     Material* material;
     Camera* camera;
     InputHandler* inputHandler;
+    Arm* arm = nullptr;
 
     InputData(Transformation* t, Material* m, Camera* c)
         : transformation(t), material(m), camera(c) {}
