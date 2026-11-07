@@ -26,12 +26,12 @@ chat, rather than inheriting OBJ-viewer requirements from the separate subject.
 | --- | --- | --- |
 | [Window](../../src/window/Window.cpp) | GLFW initialization, 4.1 core context, events, and window lifetime. | Retain it; expose/query actual framebuffer dimensions and guard minimized frames. |
 | [ShaderProgram](../../src/shaders/ShaderProgram.cpp) and `src/shaderSources/` | Compile/link GLSL 410 and transform vertices with projection × view × model. | Keep the pipeline; add a plain body-color path that does not require a BMP. |
-| [Render](../../src/render/Render.cpp) and [RenderDraw](../../src/render/RenderDraw.cpp) | Upload an interleaved mesh and prepare one indexed draw. | Separate frame preparation from drawing an individual part. |
-| [MatrixTransform](../../src/matrixMath/MatrixTransform.cpp) | Identity, multiplication, translation, rotation, corrected uniform/nonuniform scaling and perspective. | Check the remaining Y-rotation convention; add a value-copy matrix stack. |
+| [Render](../../src/render/Render.cpp) and [RenderDraw](../../src/render/RenderDraw.cpp) | Shared unit cube, one indexed draw per part, and separate frame preparation. | Traverse the body with `drawUnitCube(stack, color)` calls. |
+| [MatrixTransform](../../src/matrixMath/MatrixTransform.cpp) and [MatrixStack](../../src/matrixMath/MatrixStack.hpp) | Custom transformations and a bounded value-copy stack. | Check the remaining Y-rotation convention; use the stack for joints. |
 | [Transformation](../../src/scene/Transformation.cpp) | Builds one model transform for the viewer. | Use its root manipulation for the whole character; keep joint poses separate. |
 | [Camera](../../src/scene/Camera.cpp) | Projection and resize aspect; view currently remains identity. | Implement a real view translation/look-at so the person can stand in world space. |
 | [InputHandler](../../src/inputHandler/InputHandler.cpp) | Keyboard/mouse callbacks and access to scene state. | Retain callbacks; add animation mode, pause/reset, and joint demonstration controls. |
-| [OBJ loader](../../src/modelLoader/RenderModelLoader.cpp), `src/texture/` | Existing viewer geometry and BMP handling. | Keep as reference; body geometry should use a guaranteed unit cube. |
+| [OBJ loader](../../src/modelLoader/RenderModelLoader.cpp), `src/texture/` | Existing viewer geometry and BMP handling. | Preserve the viewer mode; the procedural cube path needs no OBJ/BMP. |
 
 The Makefile mentions GLM in the original project, but the inspected source does
 not use it. The imported build removes those unused include flags. Your own
@@ -57,8 +57,9 @@ call these helpers directly on a rotated stack top and assume post-multiplicatio
 
 ## Issues found before adding a skeleton
 
-The following were found in the imported code. Projection/scaling are now fixed
-and covered by `make test`; the other items remain pending. This does not yet
+The following were found in the imported code. Projection/scaling, the shared
+cube, matrix stack, and frame separation are now implemented. Remaining items
+are identified below. This does not yet
 establish correctness of every matrix operation or the future hierarchy.
 
 1. **Perspective — fixed.** The old builder left `matrix[15]` at 1. It now
@@ -74,26 +75,26 @@ establish correctness of every matrix operation or the future hierarchy.
 3. **Y rotation uses the opposite sign from the guide's right-hand convention.**
    `rotateY(+90°)` maps +Z to −X, while the chosen right-hand convention expects
    +X. Standardize the signs, including input direction, before defining a gait.
-4. **No matrix stack or joint hierarchy exists.** The current program owns one
-   model matrix. Mouse rotation and automatic spinning move the entire OBJ.
-5. **The example cube is 2×2×2.** Its coordinates are ±1, and the loader centers
-   geometry without normalizing size. Using that asset unchanged as the required
-   unit primitive would violate the HumanGL drawing contract.
-6. **Animation is coupled to rendering.** `renderFrame()` advances auto-rotation
-   and material blending while also clearing the framebuffer and uploading one
-   model matrix. Calling it once per body part would clear previous parts and
-   advance animation repeatedly. Also, `1 / 60` is integer zero in the current
-   rotation condition; it is not a meaningful frame-time gate.
-7. **GPU ownership needs care when expanding.** `Render` copies a `ShaderProgram`
-   handle and deletes it in `cleanUp()`. Do not create ten renderers that each
-   delete the same program. Texture objects also currently lack a texture-delete
-   path. Use one shared renderer/mesh for the ten body draws and give each GPU
-   resource a single owner.
+4. **Matrix stack — implemented; skeleton pending.** `MatrixStack` copies complete
+   row-major matrices, keeps a base identity, and rejects overflow/underflow
+   without mutation. The `--cubes` demo draws independent siblings from a shared
+   parent. The ten-part articulated body remains the next stage.
+5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
+   `makeUnitCubeMesh()` creates fixed ±0.5 geometry and 36 indices. Each renderer
+   uploads that cube once. `drawUnitCube(stack, color)` reads the current matrix
+   and issues exactly one indexed draw, without changing the stack or geometry.
+6. **Frame/draw separation — implemented.** `beginFrame(camera)` clears and
+   uploads the camera once. `drawUnitCube()` and `drawMesh()` draw individual
+   objects. Viewer rotation/material blending now advance once in `main.cpp`,
+   before matrix evaluation; the integer `1 / 60` gate has been removed.
+7. **Renderer ownership — clarified.** `Render` borrows the shader program and
+   owns its mesh buffers plus a 1×1 white fallback texture. Its idempotent
+   `cleanUp()` releases those resources; the caller deletes the program afterward.
+   The fallback keeps the shared shader's legacy sampler complete even without
+   a BMP. Cleanup for loaded BMP texture objects remains a separate pending task.
 
-Initial framebuffer pixel dimensions are not explicitly queried in the viewer.
-The resize callback updates the viewport/aspect, but rendering should also be
-initialized from actual framebuffer pixels and skip zero-size frames. These
-changes belong with the camera/frame preparation step.
+The main loop now queries actual framebuffer pixel dimensions through `Window`,
+updates viewport/aspect, and skips zero-size frames while waiting for events.
 
 ## Small import changes already made
 
@@ -110,8 +111,9 @@ changes belong with the camera/frame preparation step.
   missing type declarations with Linux's standard library without changing layout.
 
 Those were the initial import changes. Subsequent corrections affect
-`MatrixTransform`, `Camera`, and the default model translation. Example assets
-and the original scop project remain unchanged.
+`MatrixTransform`, `Camera`, and the default model translation. The next stage
+added the shared cube, stack, frame/draw separation, and demo using those same
+scop classes. Example assets and the original scop project remain unchanged.
 
 ## Build the project in this order
 
@@ -123,15 +125,14 @@ and the original scop project remain unchanged.
    the remaining Y convention and extend the point checks. Move the camera to
    view the origin from positive Z; set the initial model/global scale to 1 for
    the future unit body.
-3. **Create one unit cube and one drawing method.** Add a small cube `Mesh` builder
-   with positions ±0.5 and 36 indices, retaining Render's existing vertex layout
-   initially. Add a flat body-color shader path and remove the texture requirement
-   from the HumanGL body entry point. Upload the cube once.
-4. **Separate frame work from part work.** Make `beginFrame(camera)` clear once
-   and upload the view/projection. Make `drawUnitCube(modelMatrix, color)` upload
-   one model/color, bind the shared VAO, and issue one `glDrawElements`. It must
-   not advance time, clear the frame, or resize geometry.
-5. **Add the stack and a two-part arm.** Save matrices by value. Multiply
+3. **Inspect the implemented cube.** Read `UnitCube.cpp` and
+   `Render::drawUnitCube()`. Run `./humangl --cubes` without any assets and trace
+   how three transforms reuse one mesh.
+4. **Inspect the frame boundary.** `beginFrame(camera)` clears once and uploads
+   view/projection. Each part draw uploads its own model/color. Use
+   `make test-render` to check draw counts, shared VAO, pixels, and stack state.
+5. **Use the stack for a two-part arm next.** The stack already saves by value
+   and composes local transforms. Multiply
    `parent * attachment * jointRotation`, temporarily apply center-offset and
    geometry scale for each draw, then restore the unscaled joint frame. Prove
    that growing an upper arm repositions its elbow without stretching its forearm.
@@ -145,8 +146,8 @@ and the original scop project remain unchanged.
 8. **Complete the defense checklist.** Check resizing, inheritance, stack balance,
    drawing calls, and both target platforms before adding bonuses.
 
-Suggested additions are `MatrixStack` beside `MatrixTransform`, `Humanoid` beside
-the scene classes, and an animation controller. The rest should extend the
+The next additions are `Humanoid` beside the scene classes and an animation
+controller. The implemented `MatrixStack` sits beside `MatrixTransform`. Extend the
 existing classes rather than introduce another window or rendering framework.
 
 ## Validation so far
@@ -166,3 +167,17 @@ existing classes rather than introduce another window or rendering framework.
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.
 - No skeleton or animation system has been implemented in this adoption step.
+
+## Shared cube and stack checks
+
+`make test` includes 97 projection/scaling assertions, 100 stack assertions, and
+unit-cube extent/topology/winding checks. `make test-render` checks real pixels,
+one 36-index call per cube, a reused VAO, no per-part geometry uploads or clears,
+unchanged stack state, the legacy mesh color path, and borrowed shader ownership.
+The graphical target uses a hidden window and requires a display session; it does
+not automate keyboard/mouse interaction.
+
+The final CPU and graphical targets passed on macOS/OpenGL 4.1 and
+Ubuntu/Mesa/OpenGL 4.5 on 7 November 2026. The Mac sampler warning observed during
+development was resolved by the renderer-owned white fallback texture; a later
+check passed without that warning.

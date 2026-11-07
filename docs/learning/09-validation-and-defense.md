@@ -10,7 +10,7 @@ one kind of check does not prove the others.
 
 The following is a checklist for the complete HumanGL application. The repository
 now contains the adopted scop viewer. Its build/render evidence is separate from
-the still-pending body, stack, resizing, and animation checks below. See the
+the still-pending body, body-resizing, and animation checks below. See the
 [scop review](11-scop-base.md) for inherited issues and the implementation route.
 
 ## Targeted numerical checks
@@ -20,6 +20,11 @@ planes, stale matrix entries, invalid inputs, rotated/nonuniform scale,
 translation preservation, resize aspects, and default cube visibility. These are
 CPU checks without an OpenGL context. Extend the target as the relevant functions
 become available to cover the rest of the guide:
+
+It also includes 100 matrix-stack assertions for copying/restoring frames,
+composition, sibling independence, bounds, reset, and null inputs. A separate
+CPU executable checks the procedural cube's extent, closed surface, winding,
+and unit face areas. Full limb/joint relationships remain to implement.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
@@ -89,12 +94,26 @@ The current viewer commands, from the repository root, are:
 ```sh
 make
 make test
+./humangl --cubes
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
 
-Extend the CPU-only `make test` target when adding the stack and other maths.
+Extend the CPU-only `make test` target when adding joints and other maths.
 The removed triangle starter's `make check`/`--check` interface is not part
 of scop; the review used a separate temporary probe linked to the actual modules.
+
+The shared-cube stage adds `make test-render`, which runs a permanent hidden-window
+integration test. It checks two colored cubes in the same frame, exactly one draw
+per cube, a shared VAO, no per-part geometry upload or clear, stack preservation,
+the legacy mesh color mode, and safe renderer/program cleanup. It requires a
+desktop session; under Linux/Mesa/Xvfb use
+`LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
+
+On 7 November 2026, the shared-cube/stack stage passed `make test` and
+`make test-render` on Apple M1 Pro/OpenGL 4.1 and Ubuntu/Mesa llvmpipe/OpenGL 4.5.
+The final renderer check includes the white sampler fallback and exits without
+OpenGL errors. The interactive `--cubes` mode is built; keyboard/mouse behavior
+has not been automated or manually exercised by these checks.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented

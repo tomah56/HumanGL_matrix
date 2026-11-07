@@ -74,7 +74,7 @@ draw_down_segment(dimensions):
     push
         multiply T(0, -dimensions.length/2, 0)
         multiply S(dimensions.width, dimensions.length, dimensions.depth)
-        draw_unit_cube(renderer, stack, part_color)
+        renderer.drawUnitCube(stack, part_color)
     pop
 
 draw_two_part_limb(attachment, upper, lower, upper_angle, lower_angle):
@@ -93,7 +93,7 @@ draw_person(dimensions, pose, root):
 
     push
         multiply S(torso.width, torso.height, torso.depth)
-        draw_unit_cube(renderer, stack, torso_color)
+        renderer.drawUnitCube(stack, torso_color)
     pop
 
     push
@@ -101,7 +101,7 @@ draw_person(dimensions, pose, root):
         multiply R(pose.head)
         multiply T(0, head.height/2, 0)
         multiply S(head.width, head.height, head.depth)
-        draw_unit_cube(renderer, stack, head_color)
+        renderer.drawUnitCube(stack, head_color)
     pop
 
     draw_two_part_limb(left_shoulder, left_upper_arm, left_forearm,

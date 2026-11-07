@@ -13,25 +13,32 @@ start from the torso frame, not from the left wrist.
 
 ## Define a small interface
 
+The implemented class is [MatrixStack](../../src/matrixMath/MatrixStack.hpp),
+with its operations in [MatrixStack.cpp](../../src/matrixMath/MatrixStack.cpp).
+Run `make test` for its CPU checks and `./humangl --cubes` for two independent
+sibling branches drawn from one saved parent.
+
 An array with capacity 32 is ample for this hierarchy. Initialize it with one
 identity matrix. Here `count` means the number of occupied entries; top is always
 `entries[count - 1]`.
 
 ```cpp
-typedef struct {
-    Mat4 entries[32];
-    size_t count;
-} MatrixStack;
-
-void stack_init(MatrixStack *stack);
-bool stack_push(MatrixStack *stack);
-bool stack_pop(MatrixStack *stack);
-Mat4 stack_top(const MatrixStack *stack);
-void stack_load(MatrixStack *stack, Mat4 matrix);
-void stack_multiply(MatrixStack *stack, Mat4 local);
+MatrixStack stack;                         // one identity matrix
+stack.load(rootModelMatrix);               // copy a row-major float[16]
+if (!stack.push()) throw std::runtime_error("Stack overflow");
+stack.translate(0.0f, -upperLength, 0.0f);   // top = top * local translation
+stack.rotateX(elbowDegrees);
+const auto elbowFrame = stack.top();       // independent std::array<float, 16>
+if (!stack.pop()) throw std::runtime_error("Stack underflow");
 ```
 
-Use the standard C++ headers for the size type; `bool` is a language keyword.
+The class stores 32 `std::array<GLfloat, 16>` values. `size()` reports depth and
+`reset()` restores one identity entry. `load()` and `multiply()` accept either a
+matrix array value or a pointer to 16 floats. `translate()`, `rotateX/Y/Z()`, and
+uniform/nonuniform `scale()` build local matrices and post-multiply the top.
+They retain scop's existing degree-based rotation conventions, including the
+pending Y-direction issue noted in the adaptation guide.
+
 The first entry must remain present. On overflow or a pop of the last entry,
 return false without changing the stack. In a body traversal, treat such a failure
 as a programming error: report it and stop that render rather than proceeding
@@ -53,7 +60,7 @@ multiply(local):
     entries[count - 1] = mat4_mul(entries[count - 1], local)
 ```
 
-`stack_top` returns a value copy. Storing pointers to one mutable matrix in every
+`top()` returns a value copy. Storing pointers to one mutable matrix in every
 entry would make all frames change together and defeat saving/restoring.
 
 ## Trace two branches
@@ -91,7 +98,7 @@ center offset and dimensions; remove them before locating the next joint.
 push
     multiply T(0, -upper_length/2, 0)
     multiply S(upper_width, upper_length, upper_depth)
-    draw_unit_cube(...)
+    render.drawUnitCube(stack, color)
 pop
 // Stack top is the shoulder again; its units have not been stretched.
 multiply T(0, -upper_length, 0)
@@ -105,6 +112,10 @@ a child is attached without leaking the parent's drawing scale into the child.
 ## Exercise and checkpoint
 
 Add CPU-only checks alongside your matrix checks:
+
+These cases, plus copied-value semantics, rotated local translations, scale
+isolation, reset, and null inputs, are already covered by `make test`. Use them
+as exercises to predict the results before reading the assertions.
 
 1. Initialize and verify identity plus count 1.
 2. Load `P = T(3,0,0)`, push, and multiply `T(0,2,0)`.

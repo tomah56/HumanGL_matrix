@@ -54,7 +54,7 @@ Keep these conventions consistent in your C++ and GLSL:
 | Vectors and matrices | Column vectors; row-major `float[16]` storage, uploaded with `GL_TRUE`. |
 | Composition | `A * B` applies B first; stack multiplication is `top = top * local`. |
 | Angles | Degree-valued rotation APIs/poses, matching scop; radians for sine/cosine and animation phase. |
-| Geometry | Future body cube: coordinates −0.5 to +0.5. The imported viewer cube is currently −1 to +1. |
+| Geometry | Shared procedural cube: coordinates −0.5 to +0.5. The separate viewer OBJ remains −1 to +1. |
 | Body | Torso frame at its center; limbs extend along local −Y from their joints. |
 
 The assignment permits OpenGL 4.0 or newer. This guide chooses **4.1** for one

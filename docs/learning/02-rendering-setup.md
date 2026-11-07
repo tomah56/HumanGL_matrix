@@ -41,10 +41,9 @@ make
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
 
-The entry point still expects an OBJ and BMP because it is the scop viewer base.
-The HumanGL body will later use a procedural unit cube and plain colors, so it
-will not need that asset-loading requirement. The included OBJ is 2×2×2; it is a
-viewer example, not yet the mandatory unit shape.
+That command retains the OBJ/BMP viewer. `./humangl --cubes` now runs a procedural
+unit-cube demo with plain colors and a matrix stack, without asset arguments.
+The included OBJ is 2×2×2; it is a viewer example rather than the unit primitive.
 
 ## Follow the code you already have
 
@@ -68,17 +67,18 @@ files together; ordinary builds do not need a generator or Python.
 
 Scop currently uploads one model matrix for one OBJ. HumanGL needs a different
 model matrix for every body part, while sharing the camera and cube mesh.
-Clear the framebuffer once per frame; do not call the current `renderFrame()`
-once per part because it also clears and advances viewer animation.
+`beginFrame(camera)` now clears and uploads the camera once per frame.
+`drawUnitCube(stack, color)` changes only the per-part drawing inputs and issues
+one draw. Viewer animation/material state advances once in `main.cpp` before
+matrix evaluation. The old combined `renderFrame()` has been replaced.
 
 The vertex shader already calculates `projectionMatrix * viewMatrix *
 modelMatrix * vec4(aPos, 1)`. CPU matrices are row-major and uploaded with
 `GL_TRUE`. That is a coherent convention; Stage 3 explains its array indices.
 
-Initial viewport/aspect should come from framebuffer pixel dimensions. Add that
-initial query to the existing window/camera integration and skip zero-size frames.
-The current resize callback already updates viewport and aspect, but it is not a
-complete minimized-window handling strategy.
+`Window::getFramebufferSize()` now supplies actual pixel dimensions to the main
+loop. It updates viewport/aspect from those dimensions and skips zero-size frames
+while processing events. The resize callback remains available.
 
 ## Research task and exercise
 

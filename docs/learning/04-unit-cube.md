@@ -17,6 +17,11 @@ result to the viewport. Keep these spaces separate when diagnosing an image.
 
 ## Build the shape once
 
+This stage is implemented in [UnitCube.cpp](../../src/render/UnitCube.cpp) and
+[RenderDraw.cpp](../../src/render/RenderDraw.cpp). Run `./humangl --cubes` to see
+the shared mesh used with three model transforms. Read the implementation beside
+this chapter; the camera/look-at extensions below remain later exercises.
+
 Use eight corner positions at all combinations of ±0.5. Define six faces, each
 with two triangles: 12 triangles and 36 indices. Use consistent outward winding.
 For the first version, use an unlit uniform color; lighting and normal matrices
@@ -28,9 +33,9 @@ GPU objects for every body part. If you later need per-face normals or colors,
 duplicating corner vertices is fine; the geometric extent stays 1×1×1.
 
 Scop's `Render` already performs this buffer setup for a `Mesh`. Extend that
-path with a unit-cube mesh builder. Its existing `models/cube.obj` has coordinates
-±1, so loading it alone does not establish the required unit size. Retain the
-existing vertex layout initially to keep the rendering changes small.
+path now includes `makeUnitCubeMesh()`, which retains the existing vertex layout.
+The imported `models/cube.obj` still has coordinates ±1; it is a viewer asset,
+whereas the procedural primitive used by `drawUnitCube()` is exactly unit size.
 
 Read the VAO and index-buffer sections of
 [Khronos's vertex specification guide](https://wikis.khronos.org/opengl/Vertex_Specification).
@@ -75,10 +80,12 @@ produce the same view matrix by both methods.
 
 ## The drawing contract
 
-Use this conceptual interface:
+The implemented interface is:
 
 ```cpp
-void draw_unit_cube(Render *renderer, const MatrixStack *stack, Vec3 color);
+void Render::beginFrame(const Camera &camera) const;
+void Render::drawUnitCube(const MatrixStack &stack,
+                          const std::array<GLfloat, 3> &color) const;
 ```
 
 The adapted `Render` owns the shared cube and references the shader/current camera.
@@ -86,21 +93,29 @@ The adapted `Render` owns the shared cube and references the shader/current came
 matrix. This function reads the top without changing it.
 
 ```text
-draw_unit_cube(renderer, stack, color):
+beginFrame(camera):
+    clear color and depth once
+    upload the camera's view and projection matrices
+
+drawUnitCube(stack, color):
     model = copy of stack top
     bind the cube shader program
-    upload projection, view, model, and color
+    upload model and solid color
     bind the shared cube VAO
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, offset 0)
 ```
 
-For the standalone cube exercise, a one-entry stack containing your model matrix
-is enough. Until that type exists, pass the model matrix directly as a temporary
-learning step. The final body traversal uses the stack interface above.
+The stack starts with one identity entry. Use `stack.load(modelMatrix)` or its
+local transform methods, then call `render.drawUnitCube(stack, color)` for every
+part. The drawing method reads a copy of the top without pushing, popping, or
+modifying it. Geometry remains unchanged between draws.
 
-Clear/upload the camera once before traversal. The current scop `renderFrame()`
-also clears and advances animation, so split that work before adding per-part
-drawing; the [adaptation review](11-scop-base.md) describes the intended boundary.
+Call `beginFrame()` once before traversal. Animation/material updates now happen
+once in `main.cpp`, before matrices are evaluated. They do not happen inside the
+part drawing method. The existing OBJ path uses `drawMesh()` after the same
+frame preparation. The renderer borrows the shader program; call `cleanUp()` for
+its own buffers/white fallback texture, then let the program owner delete the
+shader program. No BMP is required for the cube's solid-color branch.
 
 The function's vertices always describe a unit cube at the local origin. It does
 not accept a body-part name, rewrite vertex positions, choose a joint, or change
@@ -109,6 +124,11 @@ the stack. The caller supplies the transformed coordinate system. Read
 to distinguish index count, index type, and byte offset.
 
 ## Exercise and checkpoint
+
+`make test` checks cube extents, indices, outward winding, closed edges, and area.
+`make test-render` checks actual red/green cube pixels, a single shared VAO, one
+indexed draw per cube, no repeated geometry upload, no per-part clear, and an
+unchanged stack. The graphical check requires an OpenGL display session.
 
 Draw one cube with `M = T(2,0,0) * Rz(90°) * S(1,2,1)`. Its center should be
 `(2,0,0)` and its long axis should run along world X. Verify the transformed
