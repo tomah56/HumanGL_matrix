@@ -30,7 +30,9 @@ Suggested controls for the first complete version:
 Use `AnimationState` with current mode `IDLE`, `WALK`, or `JUMP`, a requested
 ground mode `IDLE`/`WALK`, walk phase, and jump elapsed time. During a jump, keys
 1/2 choose the mode to enter after landing. Ignore repeated jump requests while
-airborne. Edge-triggered controls must ignore keyboard repeat events.
+airborne. Edge-triggered controls must ignore keyboard repeat events. Scop already
+defines an `AnimationState` for automatic viewer rotation; replace or rename that
+state when adding this controller so the two responsibilities do not collide.
 
 Pausing freezes animation clocks and root movement. Continue event processing
 and refresh `previous` every frame so resuming does not accumulate paused time.
@@ -48,7 +50,8 @@ advance phase by `2*pi*f*dt`, wrapping it into `[0,2*pi)`. Evaluate the pose
 from phase each frame; do not keep adding small angles to the previous pose.
 
 For a starting gait, define `s = sin(phase)`, hip amplitude `A=25°`, shoulder
-amplitude `B=20°`, and knee bend `K=35°`. Convert these constants to radians.
+amplitude `B=20°`, and knee bend `K=35°`. Keep the amplitudes and resulting joint
+angles in degrees for scop's rotation API; only the sine phase is in radians.
 
 ```text
 left_hip       = -A * s
@@ -71,7 +74,8 @@ the straight-leg resting height prevents the endpoints penetrating a flat floor
 with an upright torso; the bent/swinging legs can rise above it.
 
 After the in-place cycle works, advance the root in its facing direction. For
-yaw `theta` and speed `v=1.0` world unit/second:
+yaw converted to radians (`theta = degreesToRadians(root.yaw)`) and speed
+`v=1.0` world unit/second:
 
 ```text
 root.x += sin(theta) * v * dt

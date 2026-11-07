@@ -68,7 +68,7 @@ windowing library with a modeling or animation library.
 
 The assignment's references to `glRotate` and `glPushMatrix` describe an older
 OpenGL approach. Your program will calculate matrices on the CPU, send them to
-shaders, and keep its stack in ordinary C memory.
+shaders, and keep its stack in ordinary CPU memory.
 
 ## Exercise and checkpoint
 

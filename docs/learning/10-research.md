@@ -17,7 +17,7 @@ an API contract; your numerical examples establish your own maths conventions.
 | [GLFW FAQ](https://www.glfw.org/faq) | macOS modern-context requirements and framebuffer size issues. | Why choose a 4.1 core context for this guide? |
 | [GLFW platform compatibility](https://www.glfw.org/docs/latest/compat_guide.html) | Platform restrictions and macOS OpenGL status. | Which assumptions should you verify on each target machine? |
 | [GLFW window guide](https://www.glfw.org/docs/latest/window_guide.html) | Framebuffer sizes, events, and context hints. | Why can logical window size differ from viewport pixel size? |
-| [GLAD 2 generator](https://gen.glad.sh/) | Generate bindings for C, OpenGL 4.1 core. | Which generated files must accompany the source? |
+| [GLAD 2 generator](https://gen.glad.sh/) | Understand scop's existing C/C++ OpenGL 4.1 core bindings. | Which generated files must stay together? |
 | [GLAD C guide](https://github.com/Dav1dde/glad/wiki/C) | Loading through GLFW and integrating generated files. | Why must loader API names match the generator version? |
 
 Adapt tutorials deliberately: select a 4.1 context and GLSL 410, implement your
@@ -30,7 +30,7 @@ in Git. The GLFW example's 3.3 context does not meet this assignment's minimum.
 | --- | --- | --- |
 | [Khronos vertex specification](https://wikis.khronos.org/opengl/Vertex_Specification) | VAOs, buffer-backed attributes, and index buffers. | Which vertex and index state is associated with a VAO? |
 | [Khronos indexed drawing reference source](https://github.com/KhronosGroup/OpenGL-Refpages/blob/main/gl4/glDrawElements.xml) | Parameters and behavior of `glDrawElements`. | Is count measured in indices, bytes, or triangles? |
-| [Khronos uniform reference source](https://github.com/KhronosGroup/OpenGL-Refpages/blob/main/gl4/glUniform.xml) | Matrix upload and transpose conventions. | Why does this guide use `GL_FALSE` for transpose? |
+| [Khronos uniform reference source](https://github.com/KhronosGroup/OpenGL-Refpages/blob/main/gl4/glUniform.xml) | Matrix upload and transpose conventions. | Why does scop use `GL_TRUE` for its row-major arrays? |
 | [Khronos OpenGL reference index](https://registry.khronos.org/OpenGL-Refpages/gl4/html/index.php) | Look up individual API calls as you use them. | What is each call's minimum supported version? |
 | [Khronos specification registry](https://registry.khronos.org/OpenGL/index_gl.php) | The OpenGL 4.1 core and GLSL 4.10 specifications. | Which behavior is required by the version you requested? |
 

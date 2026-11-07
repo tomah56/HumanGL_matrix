@@ -8,10 +8,14 @@ parent's coordinate system while you draw its children.
 The result is a small skeletal animation system based on rigid parts. Understanding
 how a parent's movement reaches its descendants is the main objective.
 
-This guide assumes you can write C and have some graphics experience. It uses
+This guide assumes you can write C/C++ and have some graphics experience. It uses
 explanations, exercises, and pseudocode rather than a complete application. Code
-blocks labeled `text` are algorithms to translate into C; declarations describe
+blocks labeled `text` are algorithms to translate into C++; declarations describe
 suggested interfaces. Shell commands are labeled with their prerequisites.
+
+Start with the [scop adaptation review](11-scop-base.md). The implementation now
+reuses your C++20 scop code, including its custom row-major maths. Stage 2 walks
+through that existing pipeline; later types and interfaces describe additions.
 
 ## Route through the project
 
@@ -21,7 +25,7 @@ why it works; a rendered picture alone can hide incorrect maths.
 | Stage | Read | Build checkpoint |
 | --- | --- | --- |
 | 1 | [Understand the assignment](01-assignment.md) | Explain the ten parts and every mandatory constraint. |
-| 2 | [Rendering setup](02-rendering-setup.md) | Open a 4.1 core context and render a triangle. |
+| 2 | [Rendering setup](02-rendering-setup.md) | Build and explain the copied scop OBJ viewer. |
 | 3 | [Your matrix maths](03-matrix-maths.md) | Pass numerical transformation exercises without a window. |
 | 4 | [One reusable cube](04-unit-cube.md) | Transform the same unit cube using your matrices. |
 | 5 | [Your matrix stack](05-matrix-stack.md) | Draw independent branches with balanced push/pop operations. |
@@ -36,21 +40,21 @@ collects the primary documentation and explains how to use it.
 
 ## Conventions used throughout
 
-Choose conventions once and keep them consistent in your C and GLSL:
+Keep these conventions consistent in your C++ and GLSL:
 
 | Topic | Choice |
 | --- | --- |
-| Language | C11; use the standard maths library for scalar operations such as sine. |
+| Language | C++20, retaining scop's classes and custom maths. |
 | Platforms | macOS and Linux with a working desktop OpenGL 4.1 implementation. |
 | Rendering | OpenGL 4.1 core; shaders use `#version 410 core`. |
 | Window and input | GLFW; GLAD 2 loads OpenGL functions. |
 | Maths ownership | Your code implements matrices, transforms, camera matrices, and stack. |
 | Coordinates | Right-handed, +X right, +Y up; character faces +Z in its rest pose. |
 | Camera | Initially on the +Z side, looking toward the origin along −Z. |
-| Vectors and matrices | Column vectors; column-major `float[16]` storage. |
+| Vectors and matrices | Column vectors; row-major `float[16]` storage, uploaded with `GL_TRUE`. |
 | Composition | `A * B` applies B first; stack multiplication is `top = top * local`. |
-| Angles | Radians internally; convert degree values at input/configuration boundaries. |
-| Geometry | A cube centered at the origin, with each coordinate between −0.5 and +0.5. |
+| Angles | Degree-valued rotation APIs/poses, matching scop; radians for sine/cosine and animation phase. |
+| Geometry | Future body cube: coordinates −0.5 to +0.5. The imported viewer cube is currently −1 to +1. |
 | Body | Torso frame at its center; limbs extend along local −Y from their joints. |
 
 The assignment permits OpenGL 4.0 or newer. This guide chooses **4.1** for one
@@ -83,6 +87,6 @@ with small functions and split files as the responsibilities become clear.
 For each stage, keep a short note in the repository: what you predicted, what you
 observed, the cause of one mistake, and how you proved the fix. Mark checkpoints
 only after checking them. The validation chapter includes a platform evidence
-table; neither platform has been tested by this documentation work.
+table for the adopted scop base and the complete project's pending checks.
 
 Your first task is [Stage 1: understand the assignment](01-assignment.md).

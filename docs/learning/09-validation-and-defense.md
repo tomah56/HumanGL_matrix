@@ -8,8 +8,10 @@ Validation connects a requirement to observable evidence. Test maths numerically
 inspect the actual drawing path, and demonstrate the articulated behavior. Passing
 one kind of check does not prove the others.
 
-The following is a checklist for the application you will build. The repository
-currently contains documentation, so the program checks below are **not yet run**.
+The following is a checklist for the complete HumanGL application. The repository
+now contains the adopted scop viewer. Its build/render evidence is separate from
+the still-pending body, stack, resizing, and animation checks below. See the
+[scop review](11-scop-base.md) for inherited issues and the implementation route.
 
 ## Targeted numerical checks
 
@@ -58,26 +60,37 @@ this check. Draw counts alone do not prove geometry size or articulation.
 
 ## Platform evidence
 
-Record this table when running the program. Never infer the Linux result from a
-successful Mac build, or infer rendering success from compilation alone.
+Record evidence for the scop-based code, rather than carrying over results from
+the removed triangle starter. A colored cube only proves the rendering path;
+it does not prove that all matrix operations or joint relationships are correct.
 
 | Platform | Build | Actual context/renderer | Graphical checklist | Evidence |
 | --- | --- | --- | --- | --- |
-| macOS | Not run | Not recorded | Not run | Fill in machine, command, and observations. |
-| Linux | Not run | Not recorded | Not run | Fill in machine, command, and observations. |
+| macOS, Apple Silicon | Passed, Apple Clang 21, warnings as errors | OpenGL 4.1 Metal | Hidden cube render probe passed; full body and manual interaction pending | Actual imported window/shaders/renderer/loaders; 36 indices, colored center pixel, no OpenGL error. |
+| Ubuntu 24.04, ARM64 container | Passed, GCC, warnings as errors | OpenGL 4.5 core, Mesa 25.2.8 llvmpipe | Hidden cube render probe passed; full body and desktop interaction pending | Actual imported modules under Xvfb; 36 indices, colored center pixel, no OpenGL error. |
 
-The intended application commands, after you implement their targets, are:
+The Linux build first exposed missing integer-type declarations in the BMP
+header; explicit standard types fixed it, and the subsequent build/render check
+passed. A clean parallel rebuild passed on macOS. The numerical review reproduced
+the inherited maths issues listed in the adaptation guide; those issues are still
+pending correction, not a passing matrix test suite.
+
+The current viewer commands, from the repository root, are:
 
 ```sh
 make
-make test
-./humangl
+./humangl models/cube.obj textureSources/wood.bmp
 ```
+
+Add a CPU-only `make test` target when implementing the maths corrections and
+stack. The removed triangle starter's `make check`/`--check` interface is not part
+of scop; the review used a separate temporary probe linked to the actual modules.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented
 working directory. Confirm a second unchanged `make` avoids needless recompiling.
-These targets and executable do not exist in the current documentation-only repo.
+The imported Makefile supplies these cleanup/rebuild targets and the viewer
+executable. No complete HumanGL or animation validation is implied.
 
 ## Exercise: a short defense walkthrough
 

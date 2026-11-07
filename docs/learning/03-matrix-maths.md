@@ -14,9 +14,13 @@ a point; it leaves a direction unchanged.
 
 ## Define storage and multiplication
 
-Suggested C types and operations, to implement yourself:
+Start by inspecting scop's `src/matrixMath/MatrixTransform.*`. It already provides
+array-based operations. The [adaptation review](11-scop-base.md) lists the concrete
+corrections needed before relying on them for joints. Keep that code as the maths
+base; the following are suggested value-type helpers to build around it as the
+exercises progress, rather than a second independent maths library:
 
-```c
+```cpp
 typedef struct { float x, y, z; } Vec3;
 typedef struct { float x, y, z, w; } Vec4;
 typedef struct { float m[16]; } Mat4;
@@ -26,12 +30,12 @@ Mat4 mat4_mul(Mat4 a, Mat4 b);
 Vec4 mat4_apply(Mat4 m, Vec4 v);
 Mat4 mat4_translation(float x, float y, float z);
 Mat4 mat4_scale(float x, float y, float z);
-Mat4 mat4_rotation_x(float radians);
-Mat4 mat4_rotation_y(float radians);
-Mat4 mat4_rotation_z(float radians);
+Mat4 mat4_rotation_x(float degrees);
+Mat4 mat4_rotation_y(float degrees);
+Mat4 mat4_rotation_z(float degrees);
 ```
 
-For row `r` and column `c`, store the value at `m[c * 4 + r]`. Storage layout
+For row `r` and column `c`, store the value at `m[r * 4 + c]`. Storage layout
 and the decision to use column vectors are distinct conventions; both are fixed
 here. The multiplication rule in mathematical row/column notation is:
 
@@ -62,9 +66,11 @@ Rx = [1 0  0 0]    Ry = [ c 0 s 0]    Rz = [c -s 0 0]
      [0 0  0 1]         [ 0 0 0 1]         [0  0 0 1]
 ```
 
-Translation therefore occupies array elements 12, 13, and 14. Angles supplied to
-`sinf` and `cosf` are radians: `radians = degrees * pi / 180`. Define a project
-constant for pi; `M_PI` is not guaranteed by standard C11.
+Translation therefore occupies array elements 3, 7, and 11. Angles supplied to
+`sinf` and `cosf` are radians: `radians = degrees * pi / 180`. Scop's public
+rotation methods accept degrees and perform that conversion internally. Preserve
+that API for the pose angles; use a project pi constant or C++20 `<numbers>` for
+scalar calculations rather than relying on a nonstandard `M_PI` macro.
 
 ## Understand order and pivots
 
@@ -105,7 +111,7 @@ identity matrices would not detect reversed operands.
 ## Research task and checkpoint
 
 Read the matrix section of the [OpenGL uniform documentation](https://github.com/KhronosGroup/OpenGL-Refpages/blob/main/gl4/glUniform.xml).
-Connect `transpose = GL_FALSE` to your column-major array representation. The
+Connect `transpose = GL_TRUE` to scop's row-major array representation. The
 shader will receive your values; OpenGL does not construct your model matrix.
 
 You are ready when you can calculate the order examples by hand, explain the
@@ -113,7 +119,7 @@ fourth component, and pass the numerical checks with your own functions.
 
 ## Common mistakes and defense questions
 
-Confusing the printed rows with the column-major array, passing degrees to sine,
+Mixing row-major array indices with column-major tutorial code, passing degrees to sine,
 and reversing multiplication operands can all produce plausible but wrong images.
 Check numerical points before changing rotation signs at random.
 

@@ -1,134 +1,106 @@
-# 2. Establish the rendering setup
+# 2. Understand and reuse scop's rendering setup
 
 [Previous: assignment](01-assignment.md) · [Guide index](README.md) · [Next: maths](03-matrix-maths.md)
 
 ## What you are learning
 
 A window displays pixels. An OpenGL context holds rendering state and connects
-your OpenGL calls to an implementation. GLFW manages the window, context, input,
-and timing. GLAD loads OpenGL function addresses. Your shaders tell the GPU how
-to transform vertices and color fragments.
+OpenGL calls to an implementation. Your scop project already creates that context,
+loads OpenGL functions, compiles shaders, uploads a mesh, and handles input.
+Understanding that existing path is the first exercise for HumanGL.
 
-First establish a minimal render loop. Keep this stage separate from body maths
-so initialization failures are easy to isolate.
+The implementation is C++20. The conceptual exercises can still use simple
+structs and functions, but you should extend the existing C++ classes. Read the
+[scop adaptation review](11-scop-base.md) for the exact reuse map and known gaps.
 
-## Prerequisites on each platform
+## Build and run the existing path
 
-Install a C11 compiler, Make, a GLFW development package, and a `pkg-config`
-implementation. On macOS, use the Xcode command-line tools and an installed GLFW
-package. On Linux, use your distribution's compiler/build tools and GLFW
-development package, with a working graphics driver and desktop display session.
-Package names vary; the discovery name used by this guide is `glfw3`.
+Install a C++20 compiler, Make, GLFW development files, and `pkg-config`.
+On macOS use the Xcode command-line tools and `brew install glfw pkgconf`.
+On Ubuntu/Debian use `sudo apt install build-essential pkg-config libglfw3-dev`.
+A graphics driver/display session must support OpenGL 4.1 or newer.
 
-These are prerequisite checks you can run before writing the application:
+These prerequisite checks do not open a window:
 
 ```sh
-cc --version
+c++ --version
 make --version
 pkg-config --modversion glfw3
 pkg-config --cflags --libs glfw3
 ```
 
-If GLFW is installed but cannot be discovered, find its `glfw3.pc` file and check
-the package manager's suggested `PKG_CONFIG_PATH`. A missing package description
-is a build-discovery issue; it does not prove that your graphics driver is wrong.
+The Makefile retains scop's object/dependency layout, warning flags, and debug
+option (`make DEBUG=1 re`). GLFW is discovered using `pkg-config` on either OS;
+the build does not assume a particular Homebrew prefix or replace your package
+search path. Inspect `all`, `clean`, `fclean`, and the sequential `re` target.
 
-Use the [GLFW build guide](https://www.glfw.org/docs/latest/build_guide.html) to
-understand discovery and linking. Prefer its `pkg-config` approach over paths
-hard-coded to one Mac installation.
+From the repository root:
 
-## Prepare a consistent GLAD loader
-
-Use the [GLAD 2 generator](https://gen.glad.sh/): select C, OpenGL (`gl`) 4.1,
-core profile, and no optional extensions. Generate normal source/header files.
-Use GLFW's function resolver, so GLAD's internal loader option is unnecessary.
-Keep the generated source, all generated headers, and license information in
-the repository when implementing the application. Ordinary builds should not
-need to contact the generator.
-
-The naming in this guide is GLAD 2: `glad/gl.h`, `gl.c`, and
-`gladLoadGL(glfwGetProcAddress)`. Older tutorials may use a different GLAD API.
-Follow the [GLAD C documentation](https://github.com/Dav1dde/glad/wiki/C) that
-matches the files you generated.
-
-## Initialization order
-
-Use the [GLFW getting-started guide](https://www.glfw.org/docs/latest/quick_guide.html)
-for API mechanics. Adapt its example to the versions below and implement your own
-maths later; do not copy its external maths helper.
-
-```text
-define GLFW_INCLUDE_NONE before including GLFW
-include the GLAD and GLFW headers
-install a GLFW error callback
-initialize GLFW; stop with an error if it fails
-request OpenGL major=4, minor=1, core profile, forward-compatible=true
-create the window; stop with the callback error if it fails
-make its context current
-load OpenGL functions through GLAD; check success and 4.1 availability
-print actual OpenGL version, shading-language version, renderer, and vendor
-create shader program and triangle buffers/VAO; check errors
-enable depth testing when moving to 3D geometry
-loop: process input, update, clear, draw, swap buffers
-delete GPU objects while the context is still current
-destroy window and terminate GLFW
+```sh
+make
+./humangl models/cube.obj textureSources/wood.bmp
 ```
 
-Requesting a context and printing its actual version are separate steps. Report
-an unsupported version clearly instead of quietly running below the target.
-macOS provides forward-compatible core contexts for modern OpenGL; see
-[GLFW's platform notes](https://www.glfw.org/docs/latest/compat_guide.html).
-OpenGL is deprecated there, but this assignment explicitly requires it.
+The entry point still expects an OBJ and BMP because it is the scop viewer base.
+The HumanGL body will later use a procedural unit cube and plain colors, so it
+will not need that asset-loading requirement. The included OBJ is 2×2×2; it is a
+viewer example, not yet the mandatory unit shape.
 
-## The first triangle
+## Follow the code you already have
 
-A VBO stores vertex data; a VAO describes how attributes read that data. Create
-and bind a real VAO in core profile. Upload three positions and draw one triangle.
-At this stage the vertex shader may put those positions directly in clip space;
-the matrix exercise comes next. Use `#version 410 core` in both shaders.
+1. `main.cpp` loads the OBJ mesh using `RenderModelLoader`.
+2. `Window` initializes GLFW and creates a 4.1 core, forward-compatible context.
+3. `gladLoadGL(glfwGetProcAddress)` loads OpenGL functions after the context is current.
+4. `ShaderProgram` compiles and links `src/shaderSources/default.vert` and `.frag`.
+5. `Render` creates the VAO, vertex buffer, and index buffer for the mesh.
+6. `Texture` loads the BMP. The active shader's sampler selects texture unit zero.
+7. `Transformation` and `Camera` produce model/view/projection matrices; `Render`
+   uploads them, then the indexed draw sends the mesh to the GPU.
+8. GLFW swaps buffers and processes input; cleanup must happen before destroying
+   the context.
 
-Check shader compilation and program linking independently and print their info
-logs on failure. A successfully created context does not prove that a shader
-compiled. Start with a constant fragment color and a contrasting clear color.
+Read the corresponding classes beside this list. `glad.cpp`, `include/glad/gl.h`,
+and `include/KHR/khrplatform.h` are the copied loader files. Their header records
+OpenGL 4.1 core, zero optional extensions, and GLAD 2.0.8. Keep these matching
+files together; ordinary builds do not need a generator or Python.
 
-Use the **framebuffer** dimensions for `glViewport` and for the aspect ratio.
-They can differ from logical window dimensions, notably on Retina displays.
-Skip rendering and projection updates when the framebuffer height or width is
-zero, while continuing to process events. See the
-[GLFW window guide](https://www.glfw.org/docs/latest/window_guide.html).
+## Understand what changes for a body
 
-## Build exercise
+Scop currently uploads one model matrix for one OBJ. HumanGL needs a different
+model matrix for every body part, while sharing the camera and cube mesh.
+Clear the framebuffer once per frame; do not call the current `renderFrame()`
+once per part because it also clears and advances viewer animation.
 
-When source files exist, write a Makefile with `all`, `clean`, `fclean`, and `re`
-targets. Compile your C files and generated GLAD source with its include directory;
-use `pkg-config` for GLFW flags and the platform maths link flags where needed
-(`-lm` on Linux). With this resolver-based GLAD configuration, rendering calls go
-through loaded pointers. If you instead add direct OpenGL platform calls, revisit
-the platform-specific link requirements.
+The vertex shader already calculates `projectionMatrix * viewMatrix *
+modelMatrix * vec4(aPos, 1)`. CPU matrices are row-major and uploaded with
+`GL_TRUE`. That is a coherent convention; Stage 3 explains its array indices.
 
-Use `-std=c11 -Wall -Wextra` for your code. Track header dependencies and avoid
-rebuilding unchanged objects on every `make`. Keep shader files in the repository;
-document running from the repository root if their paths are relative to it.
+Initial viewport/aspect should come from framebuffer pixel dimensions. Add that
+initial query to the existing window/camera integration and skip zero-size frames.
+The current resize callback already updates viewport and aspect, but it is not a
+complete minimized-window handling strategy.
 
-## Research task
+## Research task and exercise
 
-Using the GLFW lifecycle and GLAD documentation above, annotate your own
-initialization sequence with the owner of each resource and its matching cleanup
-operation. Identify the first point at which each OpenGL call is valid. Explain
-why a build dependency being installed does not guarantee a supported context.
+Use the [GLFW getting-started guide](https://www.glfw.org/docs/latest/quick_guide.html)
+for API mechanics and the [build guide](https://www.glfw.org/docs/latest/build_guide.html)
+for linking. Annotate the eight-step path above with the owning class, resource
+lifetime, and matching cleanup call. Mark which operations happen once, once per
+frame, and eventually once per body part.
 
-## Checkpoint and common mistakes
+Find the three matrix uploads in `RenderDraw.cpp`. Predict how many model uploads
+and draw calls the ten-part body will need, and how many times the framebuffer
+should be cleared. Then explain why replacing the existing pipeline is unnecessary.
 
-You should see a triangle, close the window cleanly, and read an actual OpenGL
-version of at least 4.1. Record OS, renderer, version, and build command on each
-platform when you run it. Neither platform is validated by this guide alone.
+## Checkpoint, common mistakes, and defense
 
-If the screen is blank, check shader logs, VAO binding, viewport dimensions, and
-the draw call before adding new features. Loading GLAD before making the context
-current, mixing loader generations, or requesting a 3.3 tutorial context are
-common setup mistakes.
+You are ready to continue when you can build the copied viewer, locate its matrix
+upload and draw call, and explain the context/shader/mesh lifecycle. Current build
+and rendering evidence is in the [validation chapter](09-validation-and-defense.md).
+The [adaptation review](11-scop-base.md) explains inherited maths defects that
+must be fixed before the body is evaluated.
 
-## Explain it aloud
-
-What is a context? Why load function pointers after creating it? What does a VAO
-remember? Which files and dependencies would another evaluator need to build?
+Do not regenerate a second loader, mix row-major and column-major indices, or
+mistake the existing cube asset for a unit cube. If the viewer fails, read the
+specific window/shader/model error before changing the maths. A working viewer
+is a reusable base, not proof that the future hierarchy is correct.

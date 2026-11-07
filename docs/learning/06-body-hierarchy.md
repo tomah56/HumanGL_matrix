@@ -59,14 +59,15 @@ Suggested data concepts:
   left/right elbow and knee angles.
 - `RootTransform`: world position and facing/yaw of the whole person.
 
-Use explicit fields or fixed arrays with named indices. Store radians in the
-pose. Initially use X-axis shoulder/hip/elbow/knee rotations for movement in the
-sagittal plane; torso yaw around Y demonstrates inherited rotation clearly.
+Use explicit fields or fixed arrays with named indices. Store degrees in the
+pose to match scop's rotation API. Initially use X-axis shoulder/hip/elbow/knee
+rotations for movement in the sagittal plane; torso yaw around Y demonstrates
+inherited rotation clearly.
 If multiple axes are added, document a fixed order, such as `Ry * Rx * Rz`.
 
 ## Traverse the hierarchy
 
-The following pseudocode assumes every push succeeds; check the results in C.
+The following pseudocode assumes every push succeeds; check the results in C++.
 
 ```text
 draw_down_segment(dimensions):

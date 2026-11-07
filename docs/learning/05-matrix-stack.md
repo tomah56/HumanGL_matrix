@@ -17,7 +17,7 @@ An array with capacity 32 is ample for this hierarchy. Initialize it with one
 identity matrix. Here `count` means the number of occupied entries; top is always
 `entries[count - 1]`.
 
-```c
+```cpp
 typedef struct {
     Mat4 entries[32];
     size_t count;
@@ -31,7 +31,7 @@ void stack_load(MatrixStack *stack, Mat4 matrix);
 void stack_multiply(MatrixStack *stack, Mat4 local);
 ```
 
-Include the standard headers needed for `size_t` and `bool` in your implementation.
+Use the standard C++ headers for the size type; `bool` is a language keyword.
 The first entry must remain present. On overflow or a pop of the last entry,
 return false without changing the stack. In a body traversal, treat such a failure
 as a programming error: report it and stop that render rather than proceeding
@@ -123,7 +123,7 @@ the same depth, including after hundreds of renders.
 Sketch stack contents beside the shoulder/elbow pseudocode. Label which entries
 are joint frames and which are temporary geometry frames. Relate the frame values
 to the matrix upload described in the [uniform reference](https://github.com/KhronosGroup/OpenGL-Refpages/blob/main/gl4/glUniform.xml).
-Your stack lives in C; the shader receives a matrix value for each draw.
+Your stack lives in C++ memory; the shader receives a matrix value for each draw.
 
 ## Common mistakes and defense questions
 

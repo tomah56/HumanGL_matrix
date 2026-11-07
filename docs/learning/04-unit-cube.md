@@ -27,6 +27,11 @@ while setting the position attribute and element-buffer binding. Reuse these
 GPU objects for every body part. If you later need per-face normals or colors,
 duplicating corner vertices is fine; the geometric extent stays 1×1×1.
 
+Scop's `Render` already performs this buffer setup for a `Mesh`. Extend that
+path with a unit-cube mesh builder. Its existing `models/cube.obj` has coordinates
+±1, so loading it alone does not establish the required unit size. Retain the
+existing vertex layout initially to keep the rendering changes small.
+
 Read the VAO and index-buffer sections of
 [Khronos's vertex specification guide](https://wikis.khronos.org/opengl/Vertex_Specification).
 Use the binding-based APIs available in 4.1, rather than newer direct-state-access
@@ -72,11 +77,11 @@ produce the same view matrix by both methods.
 
 Use this conceptual interface:
 
-```c
-void draw_unit_cube(Renderer *renderer, const MatrixStack *stack, Vec3 color);
+```cpp
+void draw_unit_cube(Render *renderer, const MatrixStack *stack, Vec3 color);
 ```
 
-`Renderer` owns the shared cube, shader, and current projection/view matrices.
+The adapted `Render` owns the shared cube and references the shader/current camera.
 `MatrixStack` is introduced in the next chapter; its top contains the model
 matrix. This function reads the top without changing it.
 
@@ -92,6 +97,10 @@ draw_unit_cube(renderer, stack, color):
 For the standalone cube exercise, a one-entry stack containing your model matrix
 is enough. Until that type exists, pass the model matrix directly as a temporary
 learning step. The final body traversal uses the stack interface above.
+
+Clear/upload the camera once before traversal. The current scop `renderFrame()`
+also clears and advances animation, so split that work before adding per-part
+drawing; the [adaptation review](11-scop-base.md) describes the intended boundary.
 
 The function's vertices always describe a unit cube at the local origin. It does
 not accept a body-part name, rewrite vertex positions, choose a joint, or change
