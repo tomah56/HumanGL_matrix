@@ -79,7 +79,7 @@ establish correctness of every matrix operation or the future hierarchy.
    row-major matrices, keeps a base identity, and rejects overflow/underflow
    without mutation. The `--cubes` demo draws independent siblings from a shared
    parent. `--arms` (also `--arm`) reuses the upper-arm/forearm chain twice with
-   mirrored angles, shared controls, and separate shoulder attachments.
+   identical forward-bending angles, shared controls, and separate shoulder attachments.
    Completing the ten-part body remains the next stage.
 5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
    `makeUnitCubeMesh()` creates fixed ±0.5 geometry and 36 indices. Each renderer
@@ -135,7 +135,7 @@ scop classes. Example assets and the original scop project remain unchanged.
    `make test-render` to check draw counts, shared VAO, pixels, and stack state.
 5. **Inspect the implemented arm pair.** Read `scene/Arm.cpp` and run
    `./humangl --arms`. The same chain is evaluated at two shoulder attachments
-   using opposite angle signs and shared dimensions. Geometry scale is
+   using identical X-axis joint rotations and shared dimensions. Geometry scale is
    pushed/popped separately; change a control to see both sides follow it.
 6. **Build all ten parts.** Add dimensions and pose data plus a `Humanoid` traversal
    with torso/head, two arm chains, and two leg chains. Calculate attachments from
@@ -184,11 +184,15 @@ Ubuntu/Mesa/OpenGL 4.5 on 7 November 2026. The Mac sampler warning observed duri
 development was resolved by the renderer-owned white fallback texture; a later
 check passed without that warning.
 
-The arm tests now include 276 single/mirrored-chain assertions. Run
-`./humangl --arms` to explore shared joint controls, symmetric movement,
+The arm tests now include 420 single/aligned-chain assertions. Run
+`./humangl --arms` to explore shared joint controls, matching forward movement,
 length-dependent elbow placement, and configurable shoulder spacing. The render
 test checks orange/blue pixels on both sides, the gap between them, and exactly
 four draws for the pair.
 
-The updated single/mirrored-arm CPU tests and four-part rendering checks pass on
-macOS/OpenGL 4.1 and Ubuntu/Mesa/OpenGL 4.5.
+The aligned-arm checks verify equal segment orientations and fixed shoulder
+spacing as the shared shoulder/elbow controls change. Positive flexion bends
+both chains toward local +Z; no left-side angle inversion is applied.
+
+The forward-facing version passed CPU and hidden-render checks on macOS and
+Ubuntu on 8 November 2026, including all 420 arm assertions.

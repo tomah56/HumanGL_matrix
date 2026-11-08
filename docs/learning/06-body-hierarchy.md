@@ -5,11 +5,12 @@
 ## What you are learning
 
 The two-part chain in [Arm.cpp](../../src/scene/Arm.cpp) is now reused for two arms.
-Run `./humangl --arms` (or `--arm`). Q/E moves both shoulders symmetrically,
+Run `./humangl --arms` (or `--arm`). Q/E moves both shoulders forward/back together,
 A/D moves both elbows, 1/2 changes both upper-arm lengths, and 3/4 changes both
-forearm lengths. `0` restores the shared dimensions and pose. The demo uses local Z rotation
-for a clear front view; the X-axis movement described below is a later extension
-for the complete body's walking pose.
+forearm lengths. `0` restores the shared dimensions and pose. Both joints rotate
+about local X; positive pose angles use negative right-handed X rotation so a
+downward segment bends toward the shared local +Z forward direction. The view
+starts slightly turned to show depth.
 
 `Arm::modelMatrices(parent)` evaluates the hierarchy on a copy of the parent
 stack and returns the two geometry model matrices. It rotates the shoulder,
@@ -18,10 +19,11 @@ translates by the upper length to reach the elbow, then rotates and shapes the
 forearm. The caller sends each result to the same `drawUnitCube()` method once.
 `pairedModelMatrices(parent, shoulderSpacing)` adds shoulder offsets of
 `-shoulderSpacing/2` and `+shoulderSpacing/2`, then evaluates the same chain with
-negated left-side angles. It returns left upper/forearm followed by right
-upper/forearm. All controls modify the same `Arm` object; mirroring is derived
-each frame. The pair is symmetric in the parent frame, including when that frame
-moves or rotates. The head, torso, and four leg segments remain to implement.
+identical angles on both sides. It returns left upper/forearm followed by right
+upper/forearm. All controls modify the same `Arm` object; matching segments have
+the same orientation and differ only by their shoulder offset in the parent frame.
+This relationship follows the parent when it moves or rotates. The head, torso,
+and four leg segments remain to implement.
 
 A joint frame is a moving coordinate system. For a child joint:
 
@@ -87,6 +89,8 @@ If multiple axes are added, document a fixed order, such as `Ry * Rx * Rz`.
 ## Traverse the hierarchy
 
 The following pseudocode assumes every push succeeds; check the results in C++.
+Its rotation arguments are mathematical matrix angles. The current `Arm` maps
+positive-forward pose controls to their negatives before calling `Rx`.
 
 ```text
 draw_down_segment(dimensions):
@@ -152,8 +156,9 @@ Build just a shoulder and two arm segments first. Set the shoulder at the origin
 upper length 2, lower length 1, and both angles to zero. The upper cube center is
 `(0,-1,0)`, the elbow is `(0,-2,0)`, and the wrist is `(0,-3,0)`.
 
-Rotate the shoulder +90° around Z. The elbow must move to `(2,0,0)` and wrist to
-`(3,0,0)`. Then set the elbow angle to +90° too: the wrist must be `(2,1,0)`.
+Set the arm's shoulder angle to +90°. The elbow must move forward to `(0,0,2)`
+and wrist to `(0,0,3)`. Then set the elbow angle to +90° too: the wrist must be
+`(0,1,2)`. The builder uses `Rx(-poseAngle)` for these positive-forward controls.
 The elbow angle is relative to its parent, not an absolute world angle.
 
 Extend that proven pattern to the full hierarchy. Torso yaw must move the head,

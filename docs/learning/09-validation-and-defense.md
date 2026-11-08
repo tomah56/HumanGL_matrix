@@ -24,9 +24,10 @@ become available to cover the rest of the guide:
 It also includes 100 matrix-stack assertions for copying/restoring frames,
 composition, sibling independence, bounds, reset, and null inputs. A separate
 CPU executable checks the procedural cube's extent, closed surface, winding,
-and unit face areas. `testArm` now runs 276 single/mirrored-arm assertions for
+and unit face areas. `testArm` now runs 420 single/aligned-arm assertions for
 pivot positions, parent inheritance, isolated elbow rotation, shared resizing,
-symmetry, shoulder spacing, unchanged child dimensions, and invalid inputs. The complete
+matching forward orientations, shoulder spacing, unchanged child dimensions, and
+invalid inputs. The complete
 body's remaining joint relationships are still to implement.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
@@ -119,12 +120,16 @@ The final renderer check includes the white sampler fallback and exits without
 OpenGL errors. The interactive `--cubes` mode is built; keyboard/mouse behavior
 has not been automated or manually exercised by these checks.
 
-The mirrored-arm stage passes on both macOS/OpenGL 4.1 and Ubuntu/Mesa
-OpenGL 4.5: 276 arm assertions plus the existing suites. The render test checks
+The aligned-arm stage runs 420 arm assertions plus the existing suites, including
+positive-forward flexion, matching rotations, and constant separation. The render test checks
 orange upper arms and blue forearms on both sides, a gap between the arms,
 exactly four 36-index draws, no new geometry upload, and a preserved parent
 frame. Both arms use the same pose/dimensions and existing key controls;
 physical keyboard/mouse interaction remains a manual check.
+
+On 8 November 2026, the forward-facing version passed all CPU suites and the
+hidden-render checks on macOS/OpenGL 4.1 and Ubuntu/Mesa/OpenGL 4.5. Both chains
+use identical forward-bending rotations; the arm suite now contains 420 assertions.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented
