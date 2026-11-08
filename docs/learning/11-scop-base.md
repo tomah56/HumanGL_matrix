@@ -81,8 +81,8 @@ establish correctness of every matrix operation or the future hierarchy.
    parent. `--limbs` (also `--arms` or `--arm`) reuses the two-part chain four
    times: two arms and two identical legs beneath them. All share dimensions,
    controls, and forward-bending angles. `Humanoid` now attaches the arm pair to
-   the torso's sides and the leg pair underneath it, drawing nine body parts.
-   The head remains to implement.
+   the torso's sides, the leg pair underneath it, and the head on top, drawing
+   all ten body parts.
 5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
    `makeUnitCubeMesh()` creates fixed ±0.5 geometry and 36 indices. Each renderer
    uploads that cube once. `drawUnitCube(stack, color)` reads the current matrix
@@ -143,8 +143,8 @@ scop classes. Example assets and the original scop project remain unchanged.
    separately; change a control to see every limb follow it.
 6. **Complete all ten parts.** Inspect `Humanoid::modelMatrices()`: its centered
    torso and dimension-derived shoulder/hip attachments connect the four chains.
-   It returns nine models while keeping torso scale out of the limb frames.
-   Add the head and its attachment next. Ten body parts must reach the cube
+   The head's base follows the torso's top. It returns ten models while keeping
+   torso scale out of the head and limb frames. Ten body parts reach the cube
    drawing method once each; a parent joint must affect only its descendants.
 7. **Add idle, walk, and jump above rendering.** Evaluate an animation controller
    once per frame using elapsed seconds. Input selects its state. It produces
@@ -152,7 +152,7 @@ scop classes. Example assets and the original scop project remain unchanged.
 8. **Complete the defense checklist.** Check resizing, inheritance, stack balance,
    drawing calls, and both target platforms before adding bonuses.
 
-The next additions are the head in `Humanoid` and an animation controller.
+The next addition is an animation controller.
 The implemented `MatrixStack` sits beside `MatrixTransform`. Extend the
 existing classes rather than introduce another window or rendering framework.
 
@@ -172,8 +172,8 @@ existing classes rather than introduce another window or rendering framework.
 - Linux compilation/rendering and manual interaction results are recorded in
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.
-- The torso, two arms, and two identical two-part legs are implemented; the head and animation
-  system remain pending.
+- The torso, head, two arms, and two identical two-part legs are implemented;
+  the animation system remains pending.
 
 ## Shared cube and stack checks
 

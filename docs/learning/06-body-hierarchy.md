@@ -36,8 +36,10 @@ its root is the torso center. It scales one cube for the torso, attaches arms at
 `(±(torso.width + upper.width)/2, torso.length/2, 0)`, and places hips at
 `(±torso.width/4, -torso.length/2, 0)`. Both pairs reuse `pairedModelMatrices()`.
 Attachments use the unscaled torso frame, so torso resizing repositions the
-limbs without stretching them. All nine parts inherit root motion. The head
-remains to implement; the legs intentionally share the arms' movement controls.
+limbs without stretching them. The head cube is centered at
+`(0, (torso.length + head.length)/2, 0)`, keeping its base on the torso's top.
+Its dimensions are independent of torso scaling. All ten parts inherit root
+motion; the legs intentionally share the arms' movement controls.
 
 A joint frame is a moving coordinate system. For a child joint:
 
@@ -164,9 +166,9 @@ scene geometry out of that body count.
 `make test` now includes the two-part arm cases below, plus inherited 3D root
 motion, resizing, isolated elbow movement, preserved forearm dimensions, unchanged
 parent stack, and rejected invalid dimensions/angles. `make test-render` also
-checks the green torso and all eight limb blocks, the gap between the legs, and
-exactly nine indexed draws for the body scene. `testHumanoid` checks torso-side
-and bottom attachments, resizing, shared poses, and inherited torso rotation.
+checks the tan head, green torso, all eight limb blocks, and exactly ten indexed
+draws for the body scene. `testHumanoid` checks head, torso-side, and bottom
+attachments, resizing, shared poses, and inherited torso rotation.
 
 Build just a shoulder and two arm segments first. Set the shoulder at the origin,
 upper length 2, lower length 1, and both angles to zero. The upper cube center is
