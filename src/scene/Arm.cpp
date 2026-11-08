@@ -30,13 +30,13 @@ std::array<MatrixStack::Matrix, 2> Arm::modelMatrices(const MatrixStack &parent)
     }
 
     MatrixStack joints = parent;
-    joints.rotateZ(pose.shoulderDegrees);
+    joints.rotateX(-pose.shoulderDegrees);
     const auto upper = segmentModel(joints, dimensions.upper);
 
     // The geometry scale was popped: the elbow inherits the shoulder rotation
     // and upper-arm length, while the forearm retains its own dimensions.
     joints.translate(0.0f, -dimensions.upper.length, 0.0f);
-    joints.rotateZ(pose.elbowDegrees);
+    joints.rotateX(-pose.elbowDegrees);
     const auto forearm = segmentModel(joints, dimensions.forearm);
     return {upper, forearm};
 }
@@ -52,10 +52,7 @@ std::array<MatrixStack::Matrix, 4> Arm::pairedModelMatrices(
         const GLfloat side = index == 0 ? -1.0f : 1.0f;
         MatrixStack attachment = parent;
         attachment.translate(side * shoulderSpacing / 2.0f, 0.0f, 0.0f);
-        Arm mirrored = *this;
-        mirrored.pose.shoulderDegrees *= side;
-        mirrored.pose.elbowDegrees *= side;
-        const auto armModels = mirrored.modelMatrices(attachment);
+        const auto armModels = modelMatrices(attachment);
         models[index * 2] = armModels[0];
         models[index * 2 + 1] = armModels[1];
     }

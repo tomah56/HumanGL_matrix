@@ -115,7 +115,7 @@ int main() {
         require(glGetError() == GL_NO_ERROR, "Rendering raised an OpenGL error");
 
         Arm arm;
-        arm.pose = {0.0f, 90.0f};
+        arm.pose = {0.0f, 60.0f};
         stack.reset();
         stack.translate(0.0f, 1.0f, -4.0f);
         const auto shoulder = stack.top();
@@ -129,8 +129,8 @@ int main() {
         }
         expectPixel(198, 320, {255, 153, 51});
         expectPixel(442, 320, {255, 153, 51});
-        expectPixel(108, 180, {64, 140, 255});
-        expectPixel(532, 180, {64, 140, 255});
+        expectPixel(187, 124, {64, 140, 255});
+        expectPixel(453, 124, {64, 140, 255});
         expectPixel(320, 240, {0, 0, 0});
         require(stack.top() == shoulder && stack.size() == 1, "Arm traversal preserves its shoulder frame");
         require(draws == 7 && clears == 3 && uploads == 0 && indexedCubeDraws,
@@ -143,7 +143,7 @@ int main() {
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, mirrored arms, and cleanup checks.\n";
+                     "legacy mesh mode, forward-facing arms, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';

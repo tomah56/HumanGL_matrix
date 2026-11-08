@@ -85,7 +85,7 @@ int main(int args, char* argv[]) {
             mesh = renderModel.getMesh();
         }
 
-        Window window(width, height, armDemo ? "HumanGL | Mirrored arms" : windowName);
+        Window window(width, height, armDemo ? "HumanGL | Forward-facing arms" : windowName);
 
         if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
             throw runtime_error("Failed to initialize GLAD");
@@ -110,6 +110,7 @@ int main(int args, char* argv[]) {
             transformation.transform.translationX = 0.0f;
             transformation.transform.translationY = 1.0f;
             transformation.transform.translationZ = -5.0f;
+            transformation.transform.rotationY = 25.0f;
         }
         Arm arm;
         Material material;

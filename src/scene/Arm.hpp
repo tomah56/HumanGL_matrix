@@ -26,11 +26,12 @@ public:
     ArmPose pose;
 
     // Upper-arm and forearm models, in that order. The parent is the shoulder
-    // attachment frame. Joint rotations are about local Z for this first demo.
+    // attachment frame. Positive joint angles bend forward along local +Z,
+    // using negative right-handed X rotations.
     std::array<MatrixStack::Matrix, 2> modelMatrices(const MatrixStack &parent) const;
 
     // Shared pose/dimensions for two arms. Shoulder attachments are spaced along
-    // parent X; left joint angles are negated to mirror the right arm.
+    // parent X; both use the same joint angles and face local +Z.
     // Order: left upper, left forearm, right upper, right forearm.
     std::array<MatrixStack::Matrix, 4> pairedModelMatrices(
         const MatrixStack &parent, GLfloat shoulderSpacing = 1.6f) const;
