@@ -9,8 +9,8 @@ inspect the actual drawing path, and demonstrate the articulated behavior. Passi
 one kind of check does not prove the others.
 
 The following is a checklist for the complete HumanGL application. The repository
-now contains the adopted scop viewer. Its build/render evidence is separate from
-the still-pending body, body-resizing, and animation checks below. See the
+now contains the adopted scop viewer, connected body, and C++ sequence player.
+Automated evidence is separate from the full manual acceptance checks below. See the
 [scop review](11-scop-base.md) for inherited issues and the implementation route.
 
 ## Targeted numerical checks
@@ -34,6 +34,9 @@ head attachment and resizing, and rejected torso/head dimensions.
 `testLimbControls` adds 144 assertions for all eight independent segment controls,
 forward/back movement, descendants, key repeat/releases, modifier shortcuts,
 shared resizing, and reset. These are direct key-event checks without a window.
+`testSequence` adds 80 assertions for interpolation, simultaneous targets, frame
+rate independence, crossing step boundaries, drift-free loops, jump landing,
+manual interruption, and invalid sequence/time inputs.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
@@ -158,6 +161,12 @@ The independent-control stage passed the macOS build, all CPU suites, and hidden
 OpenGL 4.1 rendering. Every arm and leg now has its own pose, with shared sizes.
 Key-event checks cover L/R plus A/D or Q/E, with L+K and R+T selecting the lower
 segments. Physical keyboard combinations and Linux remain untested for this stage.
+
+The C++ sequence stage passed the macOS build, all CPU suites, and hidden OpenGL
+4.1 rendering. F5 starts walking in place, F6 jumps once, and F7 stands still.
+The render check samples the jumping torso/head at the apex and verifies ten
+body draws without new geometry uploads. Physical input, motion appearance, and
+Linux validation for this stage remain pending.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented

@@ -16,7 +16,38 @@ units per second, rather than units per frame.
 
 ## Establish simple controls and state
 
-Suggested controls for the first complete version:
+The current implementation uses predefined C++ sequences in
+[Motions.cpp](../../src/animation/Motions.cpp), evaluated by
+[SequencePlayer](../../src/animation/Sequence.cpp). F5 loops walking in place;
+F6 plays one crouch/rise/land/stand jump; F7 stops and stands still. Manual joint
+input or `0` stops playback and grounds the body.
+
+Use `repeat({step(...), ...})` or `once({step(...), ...})`. Each
+`step(seconds, {to(joint, degrees), ...}, height)` moves its listed joints
+simultaneously toward absolute angles. Unlisted joints stay put. Height defaults
+to zero and is relative to the existing root Y. Each sequence starts from the
+current pose. `update(deltaTime, body)` interpolates, carries time across step
+boundaries, and skips complete extra loops without changing their endpoint.
+
+Keyboard input calls `Humanoid::moveJoint()`, which uses `setJointAngle()`;
+playback uses that same setter. The hierarchy draws either source's pose.
+Jump height is applied once as a world-space translation before the root model
+matrix, so every part rises together without inheriting geometry scale.
+Durations must be positive and finite; duplicate/unknown joints and nonfinite
+angles/heights are rejected. Rendering and input continue throughout playback.
+
+`make test` includes 80 sequence assertions for interpolation, frame-rate
+independence, crossing steps, loops, jumping/landing, stopping, manual input,
+and invalid values. The hidden render test also checks the jump apex. Physical
+keyboard and animation appearance still need manual evaluation.
+
+## Alternative analytic animation exercise
+
+The rest of this chapter explores a formula-driven alternative. Its controls,
+sine gait, ballistic jump, pause, and travel are research exercises, rather than
+the application's current bindings or behavior.
+
+Suggested controls for that alternative:
 
 | Input | Behavior |
 | --- | --- |
@@ -84,8 +115,9 @@ root.z += cos(theta) * v * dt
 
 An easy way to keep the person visible is a follow camera: target the torso root,
 and set the eye to that root plus a fixed offset such as `(5,2,8)`, using your
-look-at matrix. Reset restores the original position. Treat the in-place cycle
-as a debugging milestone, then demonstrate actual travel in the complete version.
+look-at matrix. Reset restores the original position. Horizontal travel is an
+extension to the current in-place walk; the supplied subject does not explicitly
+require travelling across the scene.
 
 ## Construct a jump
 

@@ -147,13 +147,15 @@ scop classes. Example assets and the original scop project remain unchanged.
    The head's base follows the torso's top. It returns ten models while keeping
    torso scale out of the head and limb frames. Ten body parts reach the cube
    drawing method once each; a parent joint must affect only its descendants.
-7. **Add idle, walk, and jump above rendering.** Evaluate an animation controller
-   once per frame using elapsed seconds. Input selects its state. It produces
-   joint angles and root movement; the same hierarchy then draws every pose.
+7. **Inspect the C++ sequence player.** `animation/Motions.cpp` defines walking
+   and jumping with `step()` and `to()` commands. F5 repeats the in-place walk,
+   F6 plays the jump, and F7 stands still. `SequencePlayer::update()` interpolates
+   angles and world-space height using elapsed seconds. Keyboard input and
+   playback share the joint setters and hierarchy.
 8. **Complete the defense checklist.** Check resizing, inheritance, stack balance,
    drawing calls, and both target platforms before adding bonuses.
 
-The next addition is an animation controller.
+The next stage is the full manual acceptance and defense check.
 The implemented `MatrixStack` sits beside `MatrixTransform`. Extend the
 existing classes rather than introduce another window or rendering framework.
 
@@ -174,7 +176,7 @@ existing classes rather than introduce another window or rendering framework.
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.
 - The torso, head, two arms, and two identical two-part legs are implemented;
-  the animation system remains pending.
+  C++ sequences provide walking in place, jumping, and standing still.
 
 ## Shared cube and stack checks
 
