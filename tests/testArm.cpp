@@ -123,6 +123,74 @@ void testPairedArms() {
                 "Invalid spacing must preserve the parent");
     }
 }
+
+void testArmsAndLegs() {
+    Arm shared;
+    MatrixStack parent;
+    const auto original = parent.top();
+    const auto arms = shared.pairedModelMatrices(parent);
+    auto models = shared.limbModelMatrices(parent);
+    const GLfloat drop = shared.dimensions.upper.length + shared.dimensions.forearm.length
+                         + Arm::defaultRowGap;
+    for (int part = 0; part < 4; ++part) {
+        require(models[part] == arms[part], "Adding legs must preserve the original arms");
+        for (int entry = 0; entry < 16; ++entry) {
+            const GLfloat expected = models[part][entry] - (entry == 7 ? drop : 0.0f);
+            require(std::fabs(models[part + 4][entry] - expected) < 1e-5f,
+                    "Legs must be exact copies of arms, translated down in the parent frame");
+        }
+    }
+    expectConnected({models[4], models[5]});
+    expectConnected({models[6], models[7]});
+    require(parent.top() == original && parent.size() == 1, "Eight-part evaluation preserves parent");
+
+    const auto beforeShoulder = models;
+    shared.pose.shoulderDegrees += 10.0f;
+    models = shared.limbModelMatrices(parent);
+    for (int upper : {0, 2, 4, 6}) {
+        require(models[upper] != beforeShoulder[upper], "Shared proximal angle moves all four limbs");
+    }
+    const auto beforeElbow = models;
+    shared.pose.elbowDegrees += 10.0f;
+    models = shared.limbModelMatrices(parent);
+    for (int upper : {0, 2, 4, 6}) {
+        require(models[upper] == beforeElbow[upper], "Shared distal angle preserves upper segments");
+        require(models[upper + 1] != beforeElbow[upper + 1], "Shared distal angle moves all lower segments");
+    }
+
+    shared.dimensions.upper.length += 0.5f;
+    models = shared.limbModelMatrices(parent);
+    for (int part = 0; part < 4; ++part) {
+        const auto top = pointAt(models[part], 0.5f);
+        expectPoint(pointAt(models[part + 4], 0.5f),
+                    {top[0], top[1] - drop - 0.5f, top[2]},
+                    "Resizing updates the lower row's offset");
+    }
+    for (int upper : {0, 2, 4, 6}) expectConnected({models[upper], models[upper + 1]});
+
+    shared = Arm{};
+    shared.pose = {0.0f, 0.0f};
+    models = shared.limbModelMatrices(parent, 2.0f, 0.8f);
+    expectPoint(pointAt(models[4], 0.5f), {-1.0f, -3.4f, 0.0f}, "Configurable left hip placement");
+    expectPoint(pointAt(models[6], 0.5f), {1.0f, -3.4f, 0.0f}, "Configurable right hip placement");
+    models = shared.limbModelMatrices(parent, Arm::defaultPairSpacing, 0.0f);
+    expectPoint(pointAt(models[4], 0.5f), {-0.8f, -2.6f, 0.0f}, "Zero extra row gap is allowed");
+
+    parent.translate(5.0f, 3.0f, -4.0f);
+    parent.rotateZ(90.0f);
+    const auto root = parent.top();
+    models = shared.limbModelMatrices(parent);
+    expectPoint(pointAt(models[4], 0.5f), {8.2f, 2.2f, -4.0f}, "Lower row inherits parent rotation");
+    expectPoint(pointAt(models[6], 0.5f), {8.2f, 3.8f, -4.0f}, "Both hips inherit parent rotation");
+    for (GLfloat gap : {-0.1f, std::numeric_limits<GLfloat>::infinity(),
+                        std::numeric_limits<GLfloat>::quiet_NaN()}) {
+        bool rejected = false;
+        try { shared.limbModelMatrices(parent, Arm::defaultPairSpacing, gap); }
+        catch (const std::invalid_argument &) { rejected = true; }
+        require(rejected && parent.top() == root && parent.size() == 1,
+                "Invalid row gap must preserve the parent");
+    }
+}
 }
 
 int main() {
@@ -214,7 +282,8 @@ int main() {
         require(rejected && parent.top() == full && parent.size() == MatrixStack::capacity,
                 "An arm must not corrupt a full parent stack");
         testPairedArms();
-        std::cout << "Passed " << checks << " single/aligned-arm assertions.\n";
+        testArmsAndLegs();
+        std::cout << "Passed " << checks << " arm/leg hierarchy assertions.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Arm test failed: " << error.what() << '\n';

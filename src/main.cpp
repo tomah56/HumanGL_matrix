@@ -53,10 +53,10 @@ static void drawCubeDemo(const Render &render, const Transformation &transformat
     }
 }
 
-static void drawArms(const Render &render, const Arm &arm, const Transformation &transformation) {
+static void drawLimbs(const Render &render, const Arm &limbs, const Transformation &transformation) {
     MatrixStack stack;
     stack.load(transformation.modelMatrix);
-    const auto models = arm.pairedModelMatrices(stack);
+    const auto models = limbs.limbModelMatrices(stack);
     const array<array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
     for (size_t part = 0; part < models.size(); ++part) {
         stack.load(models[part]);
@@ -70,10 +70,11 @@ int main(int args, char* argv[]) {
     char *windowName = nullptr;
 
     const bool cubeDemo = args == 2 && string(argv[1]) == "--cubes";
-    const bool armDemo = args == 2 && (string(argv[1]) == "--arms" || string(argv[1]) == "--arm");
-    const bool primitiveDemo = cubeDemo || armDemo;
+    const bool limbDemo = args == 2 && (string(argv[1]) == "--limbs"
+                                      || string(argv[1]) == "--arms" || string(argv[1]) == "--arm");
+    const bool primitiveDemo = cubeDemo || limbDemo;
     if (!primitiveDemo && args != 3) {
-        cout << "Usage: ./humangl --arms (or --arm)\n"
+        cout << "Usage: ./humangl --limbs (or --arms / --arm)\n"
              << "       ./humangl --cubes\n"
              << "       ./humangl models/cube.obj textureSources/wood.bmp" << endl;
         return args == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -85,7 +86,7 @@ int main(int args, char* argv[]) {
             mesh = renderModel.getMesh();
         }
 
-        Window window(width, height, armDemo ? "HumanGL | Forward-facing arms" : windowName);
+        Window window(width, height, limbDemo ? "HumanGL | Arms and legs" : windowName);
 
         if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
             throw runtime_error("Failed to initialize GLAD");
@@ -100,29 +101,32 @@ int main(int args, char* argv[]) {
         unique_ptr<Texture> texture;
         if (!primitiveDemo) texture = make_unique<Texture>(argv[2]);
 
+        Arm arm;
         Transformation transformation;
         if (primitiveDemo) {
             transformation.animationState.isRotate = false;
             transformation.transform.scaleFactor = 1.0f;
             transformation.transform.translationZ = -6.0f;
         }
-        if (armDemo) {
+        if (limbDemo) {
             transformation.transform.translationX = 0.0f;
-            transformation.transform.translationY = 1.0f;
-            transformation.transform.translationZ = -5.0f;
+            transformation.transform.translationY = arm.dimensions.upper.length
+                + arm.dimensions.forearm.length + Arm::defaultRowGap / 2.0f;
+            transformation.transform.translationZ = -9.0f;
+            transformation.minZ = -20.0f;
             transformation.transform.rotationY = 25.0f;
         }
-        Arm arm;
         Material material;
         Camera camera((GLfloat)window.getScreenWidth(), (GLfloat)window.getScreenHeight());
         InputData inputData = {&transformation, &material, &camera};
-        if (armDemo) inputData.arm = &arm;
+        if (limbDemo) inputData.arm = &arm;
 
         // Set up user input
         window.setUpUserInput(inputData);
-        if (armDemo) {
-            cout << "Arms: Q/E both shoulders, A/D both elbows, 1/2 both upper-arm lengths, "
-                    "3/4 both forearm lengths, 0 reset both arms. Escape closes.\n";
+        if (limbDemo) {
+            cout << "Limbs: Q/E shoulders and hips, A/D elbows and knees, "
+                    "1/2 all upper lengths, 3/4 all lower lengths, "
+                    "0 reset all four limbs. Escape closes.\n";
         }
 
         // GLFW must be initialized before reading its timer.
@@ -151,7 +155,7 @@ int main(int args, char* argv[]) {
             camera.updateProjection();
             transformation.updateModelMatrix();
             render.beginFrame(camera);
-            if (armDemo) drawArms(render, arm, transformation);
+            if (limbDemo) drawLimbs(render, arm, transformation);
             else if (cubeDemo) drawCubeDemo(render, transformation);
             else render.drawMesh(transformation.modelMatrix, material);
 

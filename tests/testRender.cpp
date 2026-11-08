@@ -117,25 +117,30 @@ int main() {
         Arm arm;
         arm.pose = {0.0f, 60.0f};
         stack.reset();
-        stack.translate(0.0f, 1.0f, -4.0f);
-        const auto shoulder = stack.top();
-        const auto armModels = arm.pairedModelMatrices(stack);
+        stack.translate(0.0f, 2.9f, -9.0f);
+        const auto limbRoot = stack.top();
+        const auto limbModels = arm.limbModelMatrices(stack);
         const std::array<std::array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
         render.beginFrame(camera);
-        for (std::size_t part = 0; part < armModels.size(); ++part) {
+        for (std::size_t part = 0; part < limbModels.size(); ++part) {
             MatrixStack segment;
-            segment.load(armModels[part]);
+            segment.load(limbModels[part]);
             render.drawUnitCube(segment, colors[part % colors.size()]);
         }
-        expectPixel(198, 320, {255, 153, 51});
-        expectPixel(442, 320, {255, 153, 51});
-        expectPixel(187, 124, {64, 140, 255});
-        expectPixel(453, 124, {64, 140, 255});
+        expectPixel(268, 382, {255, 153, 51});
+        expectPixel(372, 382, {255, 153, 51});
+        expectPixel(265, 322, {64, 140, 255});
+        expectPixel(375, 322, {64, 140, 255});
+        expectPixel(268, 176, {255, 153, 51});
+        expectPixel(372, 176, {255, 153, 51});
+        expectPixel(265, 103, {64, 140, 255});
+        expectPixel(375, 103, {64, 140, 255});
+        expectPixel(268, 240, {0, 0, 0});
         expectPixel(320, 240, {0, 0, 0});
-        require(stack.top() == shoulder && stack.size() == 1, "Arm traversal preserves its shoulder frame");
-        require(draws == 7 && clears == 3 && uploads == 0 && indexedCubeDraws,
-                "Paired arms must use exactly four shared-cube draws without new uploads");
-        require(glGetError() == GL_NO_ERROR, "Arm rendering raised an OpenGL error");
+        require(stack.top() == limbRoot && stack.size() == 1, "Limb traversal preserves its parent frame");
+        require(draws == 11 && clears == 3 && uploads == 0 && indexedCubeDraws,
+                "Arms and legs must use exactly eight shared-cube draws without new uploads");
+        require(glGetError() == GL_NO_ERROR, "Limb rendering raised an OpenGL error");
 
         render.cleanUp();
         render.cleanUp();
@@ -143,7 +148,7 @@ int main() {
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, forward-facing arms, and cleanup checks.\n";
+                     "legacy mesh mode, shared arm/leg movement, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';

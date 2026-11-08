@@ -22,6 +22,9 @@ struct ArmPose {
 
 class Arm {
 public:
+    static constexpr GLfloat defaultPairSpacing = 1.6f;
+    static constexpr GLfloat defaultRowGap = 0.6f;
+
     ArmDimensions dimensions;
     ArmPose pose;
 
@@ -34,5 +37,11 @@ public:
     // parent X; both use the same joint angles and face local +Z.
     // Order: left upper, left forearm, right upper, right forearm.
     std::array<MatrixStack::Matrix, 4> pairedModelMatrices(
-        const MatrixStack &parent, GLfloat shoulderSpacing = 1.6f) const;
+        const MatrixStack &parent, GLfloat shoulderSpacing = defaultPairSpacing) const;
+
+    // Reuse the arm pair as legs below it, with the same dimensions and pose.
+    // Arms occupy indices 0..3, legs 4..7; rowGap is the rest-pose clearance.
+    std::array<MatrixStack::Matrix, 8> limbModelMatrices(
+        const MatrixStack &parent, GLfloat pairSpacing = defaultPairSpacing,
+        GLfloat rowGap = defaultRowGap) const;
 };

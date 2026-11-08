@@ -58,3 +58,21 @@ std::array<MatrixStack::Matrix, 4> Arm::pairedModelMatrices(
     }
     return models;
 }
+
+std::array<MatrixStack::Matrix, 8> Arm::limbModelMatrices(
+    const MatrixStack &parent, GLfloat pairSpacing, GLfloat rowGap) const {
+    if (!std::isfinite(rowGap) || rowGap < 0.0f) {
+        throw std::invalid_argument("Limb row gap must be finite and nonnegative");
+    }
+
+    const auto arms = pairedModelMatrices(parent, pairSpacing);
+    MatrixStack hips = parent;
+    hips.translate(0.0f, -(dimensions.upper.length + dimensions.forearm.length + rowGap), 0.0f);
+    const auto legs = pairedModelMatrices(hips, pairSpacing);
+    std::array<MatrixStack::Matrix, 8> models;
+    for (std::size_t part = 0; part < arms.size(); ++part) {
+        models[part] = arms[part];
+        models[part + arms.size()] = legs[part];
+    }
+    return models;
+}

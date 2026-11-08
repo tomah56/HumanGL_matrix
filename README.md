@@ -26,32 +26,34 @@ From this repository root:
 
 ```sh
 make
-./humangl --arms
+./humangl --limbs
 ```
 
-This shows two forward-facing arms, each with an orange upper arm and blue forearm.
-Their shoulders are 1.6 world units apart. Both arms share one pose and dimension
-set: shoulder and elbow controls bend both arms in the same direction along
-their shared forward axis, and resizing changes both matching segments. Each
-segment is one scaled unit cube; the elbow offset follows the current upper-arm length.
-The previous `--arm` command is an alias for the same two-arm demo.
+This shows two arms and two identical legs beneath them: eight blocks total.
+Every limb has an orange upper segment and a blue lower segment. Each pair is
+1.6 world units apart. All four limbs share one pose and dimension set, bend
+forward along local +Z, and resize together. The lower pair starts below the
+upper pair by their combined segment lengths plus a 0.6-unit rest-pose gap.
+Each segment is one scaled unit cube; elbows and knees follow the upper length.
+The previous `--arms` and `--arm` commands are aliases for the same scene.
 
-| Arm control | Effect |
+| Limb control | Effect |
 | --- | --- |
-| Q / E | Move both shoulders backward / forward together. |
-| A / D | Decrease / increase both elbows' forward bend together. |
-| 1 / 2 | Shorten / lengthen both upper arms. |
-| 3 / 4 | Shorten / lengthen both forearms. |
-| 0 | Restore both arms' default joint angles and dimensions. |
-| Mouse drag | Rotate the whole pair. |
+| Q / E | Move shoulders and hips backward / forward together. |
+| A / D | Decrease / increase elbow and knee bends together. |
+| 1 / 2 | Shorten / lengthen upper arms and thighs together. |
+| 3 / 4 | Shorten / lengthen forearms and lower legs together. |
+| 0 | Restore all four limbs' default joint angles and dimensions. |
+| Mouse drag | Rotate the whole group. |
 | Escape | Close the window. |
 
 Joint keys support holding/repeat; length controls stop at 0.2 world units.
 Widths, depths, lengths, and initial pose can also be edited in
-[Arm.hpp](src/scene/Arm.hpp). Both arms use identical rotations about local X;
+[Arm.hpp](src/scene/Arm.hpp). All four limbs use identical rotations about local X;
 positive control angles bend forward along local +Z. The initial view is slightly
-turned so their depth is visible. Spacing is the `shoulderSpacing` argument of
-`Arm::pairedModelMatrices()` and is measured in the parent frame.
+turned so their depth is visible. Pair spacing and the vertical gap are the
+`pairSpacing` and `rowGap` arguments of `Arm::limbModelMatrices()`, measured in
+the parent frame. Their defaults are in `Arm.hpp`.
 
 The earlier shared-cube demo remains available with `./humangl --cubes`.
 This shows three colored cubes using one shared unit-cube mesh and a matrix
@@ -59,11 +61,11 @@ stack. The center cube and two sibling branches have independent local scales;
 the left branch also has a local rotation. Drag with the mouse to rotate the
 group; Cmd/Ctrl+R enables or disables automatic rotation. No OBJ/BMP is needed.
 
-Run `make test` for projection/scaling, matrix-stack, cube-geometry, and arm checks.
+Run `make test` for projection/scaling, matrix-stack, cube-geometry, and limb checks.
 They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
 `make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
-one draw per cube, arm rendering, and stack preservation. It needs a display
+one draw per cube, eight-part limb rendering, and stack preservation. It needs a display
 session. On a Linux machine with Xvfb/Mesa installed, run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
 
@@ -117,8 +119,10 @@ The articulated chain is implemented in [Arm.cpp](src/scene/Arm.cpp).
 attachment frame and keeping drawing scale out of joint inheritance.
 `pairedModelMatrices(parent)` reuses that chain at left/right attachments with
 identical angles, producing four model matrices from the same control state.
+`limbModelMatrices(parent)` reuses that pair below it as legs, producing eight
+model matrices with identical joint motion and shared sizing.
 
-The remaining body parts and idle/walk/jump animation are the next implementation
+The torso, head, their attachments, and idle/walk/jump animation are the next implementation
 stages. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters
