@@ -168,6 +168,16 @@ The render check samples the jumping torso/head at the apex and verifies ten
 body draws without new geometry uploads. Physical input, motion appearance, and
 Linux validation for this stage remain pending.
 
+The GUI stage passed the macOS build, CPU suites, existing hidden-render checks,
+and a new controls-panel check. Synthetic mouse clicks on Walk and a forearm
+button start playback and move the selected joint through the shared controls.
+Checks cover mouse/keyboard capture, preserved neighboring joints, context
+cleanup, and rendering beside the body without OpenGL errors. A captured frame
+was visually inspected. The right panel scrolls independently; the 3D viewport
+and projection aspect use the remaining framebuffer width, including Retina
+scaling. GUI draws are separate from the ten body-part draws. Linux and physical
+mouse/keyboard interaction for this stage remain untested.
+
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented
 working directory. Confirm a second unchanged `make` avoids needless recompiling.

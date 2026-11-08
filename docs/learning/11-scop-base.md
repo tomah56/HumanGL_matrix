@@ -31,6 +31,7 @@ chat, rather than inheriting OBJ-viewer requirements from the separate subject.
 | [Transformation](../../src/scene/Transformation.cpp) | Builds one model transform for the viewer. | Use its root manipulation for the whole character; keep joint poses separate. |
 | [Camera](../../src/scene/Camera.cpp) | Projection and resize aspect; view currently remains identity. | Implement a real view translation/look-at so the person can stand in world space. |
 | [InputHandler](../../src/inputHandler/InputHandler.cpp) | Keyboard/mouse callbacks and access to scene state. | Retain callbacks; add animation mode, pause/reset, and joint demonstration controls. |
+| [ControlsPanel](../../src/gui/ControlsPanel.cpp) | On-screen shortcuts, animation buttons, independent joint buttons, and view/size controls. | Shares commands and joint setters with keyboard input; captures panel input and reserves a separate 3D viewport. |
 | [OBJ loader](../../src/modelLoader/RenderModelLoader.cpp), `src/texture/` | Existing viewer geometry and BMP handling. | Preserve the viewer mode; the procedural cube path needs no OBJ/BMP. |
 
 The Makefile mentions GLM in the original project, but the inspected source does
@@ -156,6 +157,10 @@ scop classes. Example assets and the original scop project remain unchanged.
    drawing calls, and both target platforms before adding bonuses.
 
 The next stage is the full manual acceptance and defense check.
+The body demo now includes a Dear ImGui controls panel. Its upstream source and
+license live in `third_party/imgui`; the project's matrix and cube code remain
+responsible for the 3D hierarchy. `make test-render` checks the panel separately
+from the body's one-draw-per-part requirement.
 The implemented `MatrixStack` sits beside `MatrixTransform`. Extend the
 existing classes rather than introduce another window or rendering framework.
 
