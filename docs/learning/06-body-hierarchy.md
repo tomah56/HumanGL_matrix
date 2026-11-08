@@ -14,6 +14,11 @@ about local X; positive pose angles use negative right-handed X rotation so a
 downward segment bends toward the shared local +Z forward direction. The view
 starts slightly turned to show depth.
 
+N starts an arm-wave dance and M plays a right-arm greeting wave. These add
+sideways shoulder/elbow rotations about local Z before each existing X bend.
+The upper joint carries both segments; sideways elbow motion affects only the
+forearm. B stands still, and C/V return to walking/jumping with side angles reset.
+
 `Arm::modelMatrices(parent)` evaluates the hierarchy on a copy of the parent
 stack and returns the two geometry model matrices. It rotates the shoulder,
 temporarily adds center-offset/scale for the upper block, restores the joint,

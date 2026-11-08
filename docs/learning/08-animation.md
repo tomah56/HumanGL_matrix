@@ -21,6 +21,10 @@ The current implementation uses predefined C++ sequences in
 [SequencePlayer](../../src/animation/Sequence.cpp). C loops walking in place;
 V plays one crouch/rise/land/stand jump; B stops and stands still. Manual joint
 input or `0` stops playback and grounds the body.
+N loops an arm-wave dance; M raises the right arm, waves three times, and lowers
+it. Four extra arm targets (`LeftShoulderSide`, `LeftElbowSide`, and their right
+counterparts) control local Z rotations before each joint's X bend. Walking and
+jumping reset those angles, and standing still clears all joints.
 
 Use `repeat({step(...), ...})` or `once({step(...), ...})`. Each
 `step(seconds, {to(joint, degrees), ...}, height)` moves its listed joints
@@ -36,9 +40,10 @@ matrix, so every part rises together without inheriting geometry scale.
 Durations must be positive and finite; duplicate/unknown joints and nonfinite
 angles/heights are rejected. Rendering and input continue throughout playback.
 
-`make test` includes 80 sequence assertions for interpolation, frame-rate
+`make test` includes 129 sequence assertions for interpolation, frame-rate
 independence, crossing steps, loops, jumping/landing, stopping, manual input,
-and invalid values. The hidden render test also checks the jump apex. Physical
+and invalid values, plus dance/wave playback and switching back to walk/jump.
+The hidden render test also checks the jump apex and raised-arm wave. Physical
 keyboard and animation appearance still need manual evaluation.
 
 ## Alternative analytic animation exercise

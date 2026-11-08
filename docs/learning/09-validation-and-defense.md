@@ -28,15 +28,15 @@ and unit face areas. `testArm` now runs 549 arm/leg hierarchy assertions for
 pivot positions, parent inheritance, isolated elbow rotation, shared resizing,
 matching forward orientations, shoulder spacing, unchanged child dimensions, and
 invalid inputs. These include the copied lower pair, shared movement, resizing,
-row spacing, and inherited root rotation. `testHumanoid` adds 190 assertions for
+row spacing, and inherited root rotation. `testHumanoid` adds 211 assertions for
 torso-side and bottom attachments, torso and limb resizing, inherited rotation,
-head attachment and resizing, and rejected torso/head dimensions.
+head attachment and resizing, sideways shoulder/elbow inheritance, and invalid inputs.
 `testLimbControls` adds 144 assertions for all eight independent segment controls,
 forward/back movement, descendants, key repeat/releases, modifier shortcuts,
 shared resizing, and reset. These are direct key-event checks without a window.
-`testSequence` adds 80 assertions for interpolation, simultaneous targets, frame
+`testSequence` adds 129 assertions for interpolation, simultaneous targets, frame
 rate independence, crossing step boundaries, drift-free loops, jump landing,
-manual interruption, and invalid sequence/time inputs.
+manual interruption, dance/greeting playback, transitions, and invalid sequence/time inputs.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
