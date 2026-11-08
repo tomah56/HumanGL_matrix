@@ -13,7 +13,7 @@
 #include "scene/Transformation.hpp"
 #include "scene/Material.hpp"
 #include "scene/Camera.hpp"
-#include "scene/Arm.hpp"
+#include "scene/Humanoid.hpp"
 #include "inputHandler/InputData.hpp"
 
 using namespace std;
@@ -53,14 +53,15 @@ static void drawCubeDemo(const Render &render, const Transformation &transformat
     }
 }
 
-static void drawLimbs(const Render &render, const Arm &limbs, const Transformation &transformation) {
+static void drawBody(const Render &render, const Humanoid &body, const Transformation &transformation) {
     MatrixStack stack;
     stack.load(transformation.modelMatrix);
-    const auto models = limbs.limbModelMatrices(stack);
+    const auto models = body.modelMatrices(stack);
     const array<array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
     for (size_t part = 0; part < models.size(); ++part) {
         stack.load(models[part]);
-        render.drawUnitCube(stack, colors[part % colors.size()]);
+        render.drawUnitCube(stack, part == 0 ? array<GLfloat, 3>{0.2f, 0.8f, 0.4f}
+                                           : colors[(part - 1) % colors.size()]);
     }
 }
 
@@ -86,7 +87,7 @@ int main(int args, char* argv[]) {
             mesh = renderModel.getMesh();
         }
 
-        Window window(width, height, limbDemo ? "HumanGL | Arms and legs" : windowName);
+        Window window(width, height, limbDemo ? "HumanGL | Torso and limbs" : windowName);
 
         if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
             throw runtime_error("Failed to initialize GLAD");
@@ -101,7 +102,7 @@ int main(int args, char* argv[]) {
         unique_ptr<Texture> texture;
         if (!primitiveDemo) texture = make_unique<Texture>(argv[2]);
 
-        Arm arm;
+        Humanoid body;
         Transformation transformation;
         if (primitiveDemo) {
             transformation.animationState.isRotate = false;
@@ -110,8 +111,8 @@ int main(int args, char* argv[]) {
         }
         if (limbDemo) {
             transformation.transform.translationX = 0.0f;
-            transformation.transform.translationY = arm.dimensions.upper.length
-                + arm.dimensions.forearm.length + Arm::defaultRowGap / 2.0f;
+            transformation.transform.translationY = (body.limbs.dimensions.upper.length
+                + body.limbs.dimensions.forearm.length) / 2.0f;
             transformation.transform.translationZ = -9.0f;
             transformation.minZ = -20.0f;
             transformation.transform.rotationY = 25.0f;
@@ -119,7 +120,7 @@ int main(int args, char* argv[]) {
         Material material;
         Camera camera((GLfloat)window.getScreenWidth(), (GLfloat)window.getScreenHeight());
         InputData inputData = {&transformation, &material, &camera};
-        if (limbDemo) inputData.arm = &arm;
+        if (limbDemo) inputData.arm = &body.limbs;
 
         // Set up user input
         window.setUpUserInput(inputData);
@@ -155,7 +156,7 @@ int main(int args, char* argv[]) {
             camera.updateProjection();
             transformation.updateModelMatrix();
             render.beginFrame(camera);
-            if (limbDemo) drawLimbs(render, arm, transformation);
+            if (limbDemo) drawBody(render, body, transformation);
             else if (cubeDemo) drawCubeDemo(render, transformation);
             else render.drawMesh(transformation.modelMatrix, material);
 

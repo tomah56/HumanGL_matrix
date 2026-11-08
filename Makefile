@@ -42,13 +42,14 @@ SRC =	src/main.cpp\
 		src/matrixMath/MatrixStack.cpp\
 		src/scene/Transformation.cpp\
 		src/scene/Arm.cpp\
+		src/scene/Humanoid.cpp\
 		src/scene/Camera.cpp
 
 OBJ_DIR = obj
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 TEST_NAMES = $(OBJ_DIR)/tests/testMatrixTransform $(OBJ_DIR)/tests/testMatrixStack \
-	$(OBJ_DIR)/tests/testUnitCube $(OBJ_DIR)/tests/testArm
+	$(OBJ_DIR)/tests/testUnitCube $(OBJ_DIR)/tests/testArm $(OBJ_DIR)/tests/testHumanoid
 TEST_RENDER = $(OBJ_DIR)/tests/testRender
 TEST_OBJ = $(TEST_NAMES:%=%.o) $(TEST_RENDER).o
 TEST_SUPPORT = $(OBJ_DIR)/src/matrixMath/MatrixTransform.o \
@@ -73,6 +74,7 @@ test: $(TEST_NAMES)
 	./$(OBJ_DIR)/tests/testMatrixStack
 	./$(OBJ_DIR)/tests/testUnitCube
 	./$(OBJ_DIR)/tests/testArm
+	./$(OBJ_DIR)/tests/testHumanoid
 
 $(OBJ_DIR)/tests/testMatrixTransform: $(OBJ_DIR)/tests/testMatrixTransform.o $(TEST_SUPPORT)
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -84,6 +86,9 @@ $(OBJ_DIR)/tests/testUnitCube: $(OBJ_DIR)/tests/testUnitCube.o $(OBJ_DIR)/src/re
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(OBJ_DIR)/tests/testArm: $(OBJ_DIR)/tests/testArm.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(OBJ_DIR)/tests/testHumanoid: $(OBJ_DIR)/tests/testHumanoid.o $(OBJ_DIR)/src/scene/Humanoid.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 test-render: $(TEST_RENDER)

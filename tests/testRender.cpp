@@ -1,7 +1,7 @@
 #include "../src/window/Window.hpp"
 #include "../src/render/Render.hpp"
 #include "../src/render/UnitCube.hpp"
-#include "../src/scene/Arm.hpp"
+#include "../src/scene/Humanoid.hpp"
 
 #include <array>
 #include <iostream>
@@ -114,32 +114,34 @@ int main() {
         require(draws == 3 && clears == 2 && uploads == 0, "Mesh/cube paths share frame setup safely");
         require(glGetError() == GL_NO_ERROR, "Rendering raised an OpenGL error");
 
-        Arm arm;
-        arm.pose = {0.0f, 60.0f};
+        Humanoid body;
+        body.limbs.pose = {0.0f, 60.0f};
         stack.reset();
-        stack.translate(0.0f, 2.9f, -9.0f);
+        stack.translate(0.0f, 1.3f, -9.0f);
         const auto limbRoot = stack.top();
-        const auto limbModels = arm.limbModelMatrices(stack);
+        const auto bodyModels = body.modelMatrices(stack);
         const std::array<std::array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
         render.beginFrame(camera);
-        for (std::size_t part = 0; part < limbModels.size(); ++part) {
+        for (std::size_t part = 0; part < bodyModels.size(); ++part) {
             MatrixStack segment;
-            segment.load(limbModels[part]);
-            render.drawUnitCube(segment, colors[part % colors.size()]);
+            segment.load(bodyModels[part]);
+            render.drawUnitCube(segment, part == 0 ? std::array<GLfloat, 3>{0.2f, 0.8f, 0.4f}
+                                                  : colors[(part - 1) % colors.size()]);
         }
-        expectPixel(268, 382, {255, 153, 51});
-        expectPixel(372, 382, {255, 153, 51});
-        expectPixel(265, 322, {64, 140, 255});
-        expectPixel(375, 322, {64, 140, 255});
-        expectPixel(268, 176, {255, 153, 51});
-        expectPixel(372, 176, {255, 153, 51});
-        expectPixel(265, 103, {64, 140, 255});
-        expectPixel(375, 103, {64, 140, 255});
-        expectPixel(268, 240, {0, 0, 0});
-        expectPixel(320, 240, {0, 0, 0});
+        expectPixel(320, 320, {51, 204, 102});
+        expectPixel(268, 336, {255, 153, 51});
+        expectPixel(372, 336, {255, 153, 51});
+        expectPixel(265, 274, {64, 140, 255});
+        expectPixel(375, 274, {64, 140, 255});
+        expectPixel(300, 221, {255, 153, 51});
+        expectPixel(340, 221, {255, 153, 51});
+        expectPixel(300, 151, {64, 140, 255});
+        expectPixel(340, 151, {64, 140, 255});
+        expectPixel(320, 221, {0, 0, 0});
+        expectPixel(320, 440, {0, 0, 0});
         require(stack.top() == limbRoot && stack.size() == 1, "Limb traversal preserves its parent frame");
-        require(draws == 11 && clears == 3 && uploads == 0 && indexedCubeDraws,
-                "Arms and legs must use exactly eight shared-cube draws without new uploads");
+        require(draws == 12 && clears == 3 && uploads == 0 && indexedCubeDraws,
+                "Torso and limbs must use exactly nine shared-cube draws without new uploads");
         require(glGetError() == GL_NO_ERROR, "Limb rendering raised an OpenGL error");
 
         render.cleanUp();
@@ -148,7 +150,7 @@ int main() {
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, shared arm/leg movement, and cleanup checks.\n";
+                     "legacy mesh mode, torso and attached limbs, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';

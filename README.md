@@ -29,11 +29,11 @@ make
 ./humangl --limbs
 ```
 
-This shows two arms and two identical legs beneath them: eight blocks total.
-Every limb has an orange upper segment and a blue lower segment. Each pair is
-1.6 world units apart. All four limbs share one pose and dimension set, bend
-forward along local +Z, and resize together. The lower pair starts below the
-upper pair by their combined segment lengths plus a 0.6-unit rest-pose gap.
+This shows a green torso with two arms touching its sides and two legs attached
+underneath: nine blocks total. Every limb has an orange upper segment and a blue
+lower segment. All four limbs share one pose and dimension set, bend forward
+along local +Z, and resize together. Shoulders sit at the torso's upper sides;
+hips sit along its bottom. Attachment positions follow the torso dimensions.
 Each segment is one scaled unit cube; elbows and knees follow the upper length.
 The previous `--arms` and `--arm` commands are aliases for the same scene.
 
@@ -51,9 +51,10 @@ Joint keys support holding/repeat; length controls stop at 0.2 world units.
 Widths, depths, lengths, and initial pose can also be edited in
 [Arm.hpp](src/scene/Arm.hpp). All four limbs use identical rotations about local X;
 positive control angles bend forward along local +Z. The initial view is slightly
-turned so their depth is visible. Pair spacing and the vertical gap are the
-`pairSpacing` and `rowGap` arguments of `Arm::limbModelMatrices()`, measured in
-the parent frame. Their defaults are in `Arm.hpp`.
+turned so their depth is visible. Torso width, height (`length`), and depth are
+configured in [Humanoid.hpp](src/scene/Humanoid.hpp). Its model builder positions
+the arms using torso width plus upper-arm width, and the legs using torso width.
+Torso geometry scaling does not stretch the attached limbs.
 
 The earlier shared-cube demo remains available with `./humangl --cubes`.
 This shows three colored cubes using one shared unit-cube mesh and a matrix
@@ -65,7 +66,7 @@ Run `make test` for projection/scaling, matrix-stack, cube-geometry, and limb ch
 They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
 `make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
-one draw per cube, eight-part limb rendering, and stack preservation. It needs a display
+one draw per cube, nine-part body rendering, and stack preservation. It needs a display
 session. On a Linux machine with Xvfb/Mesa installed, run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
 
@@ -120,9 +121,11 @@ attachment frame and keeping drawing scale out of joint inheritance.
 `pairedModelMatrices(parent)` reuses that chain at left/right attachments with
 identical angles, producing four model matrices from the same control state.
 `limbModelMatrices(parent)` reuses that pair below it as legs, producing eight
-model matrices with identical joint motion and shared sizing.
+model matrices with identical joint motion and shared sizing for the earlier
+separated-pair stage. The current scene uses [Humanoid.cpp](src/scene/Humanoid.cpp)
+to attach both pairs to the torso and return all nine model matrices.
 
-The torso, head, their attachments, and idle/walk/jump animation are the next implementation
+The head and idle/walk/jump animation are the next implementation
 stages. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters
