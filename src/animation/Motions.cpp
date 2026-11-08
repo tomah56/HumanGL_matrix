@@ -7,13 +7,13 @@ const Sequence &walkingSequence() {
             to(Joint::LeftHip, 25), to(Joint::RightHip, -25),
             to(Joint::LeftKnee, -30), to(Joint::RightKnee, 0),
             to(Joint::LeftShoulder, -20), to(Joint::RightShoulder, 20),
-            to(Joint::LeftElbow, 10), to(Joint::RightElbow, 10)
+            to(Joint::LeftElbow, 10), to(Joint::RightElbow, 25)
         }),
         step(0.4, {
             to(Joint::LeftHip, -25), to(Joint::RightHip, 25),
             to(Joint::LeftKnee, 0), to(Joint::RightKnee, -30),
             to(Joint::LeftShoulder, 20), to(Joint::RightShoulder, -20),
-            to(Joint::LeftElbow, 10), to(Joint::RightElbow, 10)
+            to(Joint::LeftElbow, 25), to(Joint::RightElbow, 10)
         })
     });
     return walk;
