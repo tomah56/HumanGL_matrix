@@ -106,7 +106,7 @@ The current viewer commands, from the repository root, are:
 ```sh
 make
 make test
-./humangl --limbs
+./humangl
 ./humangl --cubes
 ./humangl models/cube.obj textureSources/wood.bmp
 ```

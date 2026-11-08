@@ -26,7 +26,7 @@ From this repository root:
 
 ```sh
 make
-./humangl --limbs
+./humangl
 ```
 
 This shows a green torso with a tan head on top, two arms touching its sides,
@@ -36,7 +36,7 @@ All bend forward along local +Z and resize together. Shoulders sit at the torso'
 hips sit along its bottom. The head's base touches the torso's top. Attachment
 positions follow the torso dimensions.
 Each segment is one scaled unit cube; elbows and knees follow the upper length.
-The previous `--arms` and `--arm` commands are aliases for the same scene.
+The full body and controls panel open by default; no startup option is needed.
 
 A scrollable controls panel appears beside the 3D view. It shows the shortcuts
 below and offers clickable animation buttons, independent joint buttons, body

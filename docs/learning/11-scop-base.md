@@ -79,7 +79,7 @@ establish correctness of every matrix operation or the future hierarchy.
 4. **Matrix stack and limb chains — implemented.** `MatrixStack` copies complete
    row-major matrices, keeps a base identity, and rejects overflow/underflow
    without mutation. The `--cubes` demo draws independent siblings from a shared
-   parent. `--limbs` (also `--arms` or `--arm`) reuses the two-part chain four
+   parent. The default `./humangl` scene reuses the two-part chain four
    times: two arms and two legs beneath them. Dimensions are shared; joint poses
    are independent. `Humanoid` now attaches the arm pair to
    the torso's sides, the leg pair underneath it, and the head on top, drawing
@@ -137,7 +137,7 @@ scop classes. Example assets and the original scop project remain unchanged.
    view/projection. Each part draw uploads its own model/color. Use
    `make test-render` to check draw counts, shared VAO, pixels, and stack state.
 5. **Inspect the implemented limbs.** Read `scene/Arm.cpp` and run
-   `./humangl --limbs`. The earlier `pairedModelMatrices()` and
+   `./humangl`. The earlier `pairedModelMatrices()` and
    `limbModelMatrices()` demonstrate copying a shared pose. The current
    `Humanoid` evaluates each chain separately with its own `HumanoidPose` entry
    and shared dimensions. Hold L/R to select a side and L+K or R+T for lower
@@ -197,7 +197,7 @@ Ubuntu/Mesa/OpenGL 4.5 on 7 November 2026. The Mac sampler warning observed duri
 development was resolved by the renderer-owned white fallback texture; a later
 check passed without that warning.
 
-The limb tests now include 549 hierarchy assertions. Run `./humangl --limbs` to
+The limb tests now include 549 hierarchy assertions. Run `./humangl` to
 explore shared joint controls, matching forward movement, length-dependent
 elbow/knee placement, and configurable pair spacing and row gap. The render
 test checks orange/blue pixels in all eight blocks, gaps between them, and

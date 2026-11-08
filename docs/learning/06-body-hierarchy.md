@@ -5,8 +5,8 @@
 ## What you are learning
 
 The two-part chain in [Arm.cpp](../../src/scene/Arm.cpp) is reused for two arms
-and two identical legs below them. Run `./humangl --limbs` (`--arms` and `--arm`
-remain aliases). Hold L/R to choose a side; hold L+K or R+T for lower segments.
+and two identical legs below them. Run `./humangl` to open the full body and GUI.
+Hold L/R to choose a side; hold L+K or R+T for lower segments.
 A/D moves the selected arm segment forward/back, and Q/E moves the selected
 leg segment forward/back. 1/2 changes all upper lengths, and 3/4 changes all lower
 lengths. `0` restores the shared dimensions and all four poses. Both joints rotate

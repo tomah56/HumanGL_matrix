@@ -76,14 +76,13 @@ int main(int args, char* argv[]) {
     char *windowName = nullptr;
 
     const bool cubeDemo = args == 2 && string(argv[1]) == "--cubes";
-    const bool limbDemo = args == 2 && (string(argv[1]) == "--limbs"
-                                      || string(argv[1]) == "--arms" || string(argv[1]) == "--arm");
-    const bool primitiveDemo = cubeDemo || limbDemo;
+    const bool bodyDemo = args == 1;
+    const bool primitiveDemo = cubeDemo || bodyDemo;
     if (!primitiveDemo && args != 3) {
-        cout << "Usage: ./humangl --limbs (or --arms / --arm)\n"
+        cout << "Usage: ./humangl\n"
              << "       ./humangl --cubes\n"
              << "       ./humangl models/cube.obj textureSources/wood.bmp" << endl;
-        return args == 1 ? EXIT_SUCCESS : EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
     try {
         Mesh mesh;
@@ -92,7 +91,7 @@ int main(int args, char* argv[]) {
             mesh = renderModel.getMesh();
         }
 
-        Window window(width, height, limbDemo ? "HumanGL | Articulated body" : windowName);
+        Window window(width, height, bodyDemo ? "HumanGL | Articulated body" : windowName);
 
         if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
             throw runtime_error("Failed to initialize GLAD");
@@ -115,7 +114,7 @@ int main(int args, char* argv[]) {
             transformation.transform.scaleFactor = 1.0f;
             transformation.transform.translationZ = -6.0f;
         }
-        if (limbDemo) {
+        if (bodyDemo) {
             transformation.transform.translationX = 0.0f;
             transformation.transform.translationY = (body.limbDimensions.upper.length
                 + body.limbDimensions.forearm.length) / 2.0f;
@@ -126,7 +125,7 @@ int main(int args, char* argv[]) {
         Material material;
         Camera camera((GLfloat)window.getScreenWidth(), (GLfloat)window.getScreenHeight());
         InputData inputData = {&transformation, &material, &camera};
-        if (limbDemo) {
+        if (bodyDemo) {
             inputData.body = &body;
             inputData.player = &player;
         }
@@ -134,8 +133,8 @@ int main(int args, char* argv[]) {
         // Set up user input
         window.setUpUserInput(inputData);
         unique_ptr<ControlsPanel> controls;
-        if (limbDemo) controls = make_unique<ControlsPanel>(window.nativeHandle());
-        if (limbDemo) {
+        if (bodyDemo) controls = make_unique<ControlsPanel>(window.nativeHandle());
+        if (bodyDemo) {
             cout << "Body: Left/Right rotate (Shift faster). "
                     "C walk, V jump, B stand still, N arm-wave dance, M greeting wave. "
                     "Hold L/R for left/right; L+K or R+T for lower segments. "
@@ -171,12 +170,12 @@ int main(int args, char* argv[]) {
             prevTime = currentTime;
 
             updateViewer(deltaTime, transformation, material);
-            if (limbDemo) player.update(deltaTime, body);
+            if (bodyDemo) player.update(deltaTime, body);
             camera.updateView();
             camera.updateProjection();
             transformation.updateModelMatrix();
             render.beginFrame(camera);
-            if (limbDemo) drawBody(render, body, transformation, player.heightOffset());
+            if (bodyDemo) drawBody(render, body, transformation, player.heightOffset());
             else if (cubeDemo) drawCubeDemo(render, transformation);
             else render.drawMesh(transformation.modelMatrix, material);
             if (controls) controls->render();
