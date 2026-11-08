@@ -48,9 +48,9 @@ The previous `--arms` and `--arm` commands are aliases for the same scene.
 | Hold R + Q / E | Right thigh forward / back. |
 | Hold L + K + Q / E | Left lower leg forward / back. |
 | Hold R + T + Q / E | Right lower leg forward / back. |
-| F5 | Start/restart the looping walk in place. |
-| F6 | Start/restart the jump; finish standing still. |
-| F7 | Stop playback and stand still. |
+| C | Start/restart the looping walk in place. |
+| V | Start/restart the jump; finish standing still. |
+| B | Stop playback and stand still. |
 | 1 / 2 | Shorten / lengthen upper arms and thighs together. |
 | 3 / 4 | Shorten / lengthen forearms and lower legs together. |
 | 0 | Restore all four limbs' default joint angles and dimensions. |
@@ -66,7 +66,6 @@ lower segments; moving a lower segment leaves every other part unchanged.
 Joint keys support holding/repeat; length controls stop at 0.2 world units.
 Manual joint movement or `0` stops playback and removes the jump offset.
 Selecting a limb, resizing, and rotating remain available during playback.
-On keyboards with media keys, you may need Fn with F5/F6/F7.
 Widths, depths, lengths, and initial pose can also be edited in
 [Arm.hpp](src/scene/Arm.hpp). All four limbs use identical rotations about local X;
 positive control angles bend forward along local +Z. The initial view is slightly

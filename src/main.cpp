@@ -134,7 +134,7 @@ int main(int args, char* argv[]) {
         window.setUpUserInput(inputData);
         if (limbDemo) {
             cout << "Body: Left/Right rotate (Shift faster). "
-                    "F5 walk, F6 jump, F7 stand still. "
+                    "C walk, V jump, B stand still. "
                     "Hold L/R for left/right; L+K or R+T for lower segments. "
                     "A/D arm forward/back, Q/E leg forward/back. "
                     "1/2 all upper lengths, 3/4 all lower lengths, "

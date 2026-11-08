@@ -18,8 +18,8 @@ units per second, rather than units per frame.
 
 The current implementation uses predefined C++ sequences in
 [Motions.cpp](../../src/animation/Motions.cpp), evaluated by
-[SequencePlayer](../../src/animation/Sequence.cpp). F5 loops walking in place;
-F6 plays one crouch/rise/land/stand jump; F7 stops and stands still. Manual joint
+[SequencePlayer](../../src/animation/Sequence.cpp). C loops walking in place;
+V plays one crouch/rise/land/stand jump; B stops and stands still. Manual joint
 input or `0` stops playback and grounds the body.
 
 Use `repeat({step(...), ...})` or `once({step(...), ...})`. Each

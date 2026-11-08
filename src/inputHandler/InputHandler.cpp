@@ -19,13 +19,13 @@ void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, i
     if (inputData->body && inputData->player && action == GLFW_PRESS
         && !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER))) {
         switch (key) {
-            case GLFW_KEY_F5:
+            case GLFW_KEY_C:
                 inputData->player->play(animation::walkingSequence(), *inputData->body);
                 return;
-            case GLFW_KEY_F6:
+            case GLFW_KEY_V:
                 inputData->player->play(animation::jumpingSequence(), *inputData->body);
                 return;
-            case GLFW_KEY_F7: {
+            case GLFW_KEY_B: {
                 inputData->player->stop();
                 animation::standStill(*inputData->body);
                 auto &transformation = *inputData->transformation;

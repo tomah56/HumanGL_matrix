@@ -163,7 +163,7 @@ Key-event checks cover L/R plus A/D or Q/E, with L+K and R+T selecting the lower
 segments. Physical keyboard combinations and Linux remain untested for this stage.
 
 The C++ sequence stage passed the macOS build, all CPU suites, and hidden OpenGL
-4.1 rendering. F5 starts walking in place, F6 jumps once, and F7 stands still.
+4.1 rendering. C starts walking in place, V jumps once, and B stands still.
 The render check samples the jumping torso/head at the apex and verifies ten
 body draws without new geometry uploads. Physical input, motion appearance, and
 Linux validation for this stage remain pending.

@@ -148,8 +148,8 @@ scop classes. Example assets and the original scop project remain unchanged.
    torso scale out of the head and limb frames. Ten body parts reach the cube
    drawing method once each; a parent joint must affect only its descendants.
 7. **Inspect the C++ sequence player.** `animation/Motions.cpp` defines walking
-   and jumping with `step()` and `to()` commands. F5 repeats the in-place walk,
-   F6 plays the jump, and F7 stands still. `SequencePlayer::update()` interpolates
+   and jumping with `step()` and `to()` commands. C repeats the in-place walk,
+   V plays the jump, and B stands still. `SequencePlayer::update()` interpolates
    angles and world-space height using elapsed seconds. Keyboard input and
    playback share the joint setters and hierarchy.
 8. **Complete the defense checklist.** Check resizing, inheritance, stack balance,
