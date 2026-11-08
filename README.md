@@ -29,11 +29,12 @@ make
 ./humangl --limbs
 ```
 
-This shows a green torso with two arms touching its sides and two legs attached
-underneath: nine blocks total. Every limb has an orange upper segment and a blue
+This shows a green torso with a tan head on top, two arms touching its sides,
+and two legs attached underneath: ten blocks total. Every limb has an orange upper segment and a blue
 lower segment. All four limbs share one pose and dimension set, bend forward
 along local +Z, and resize together. Shoulders sit at the torso's upper sides;
-hips sit along its bottom. Attachment positions follow the torso dimensions.
+hips sit along its bottom. The head's base touches the torso's top. Attachment
+positions follow the torso dimensions.
 Each segment is one scaled unit cube; elbows and knees follow the upper length.
 The previous `--arms` and `--arm` commands are aliases for the same scene.
 
@@ -54,7 +55,8 @@ positive control angles bend forward along local +Z. The initial view is slightl
 turned so their depth is visible. Torso width, height (`length`), and depth are
 configured in [Humanoid.hpp](src/scene/Humanoid.hpp). Its model builder positions
 the arms using torso width plus upper-arm width, and the legs using torso width.
-Torso geometry scaling does not stretch the attached limbs.
+Head dimensions are configured there too. Torso geometry scaling does not
+stretch the head or attached limbs.
 
 The earlier shared-cube demo remains available with `./humangl --cubes`.
 This shows three colored cubes using one shared unit-cube mesh and a matrix
@@ -66,7 +68,7 @@ Run `make test` for projection/scaling, matrix-stack, cube-geometry, and limb ch
 They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
 `make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
-one draw per cube, nine-part body rendering, and stack preservation. It needs a display
+one draw per cube, ten-part body rendering, and stack preservation. It needs a display
 session. On a Linux machine with Xvfb/Mesa installed, run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
 
@@ -123,9 +125,9 @@ identical angles, producing four model matrices from the same control state.
 `limbModelMatrices(parent)` reuses that pair below it as legs, producing eight
 model matrices with identical joint motion and shared sizing for the earlier
 separated-pair stage. The current scene uses [Humanoid.cpp](src/scene/Humanoid.cpp)
-to attach both pairs to the torso and return all nine model matrices.
+to attach both pairs and the head to the torso and return all ten model matrices.
 
-The head and idle/walk/jump animation are the next implementation
+Idle/walk/jump animation is the next implementation
 stages. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters

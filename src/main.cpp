@@ -61,6 +61,7 @@ static void drawBody(const Render &render, const Humanoid &body, const Transform
     for (size_t part = 0; part < models.size(); ++part) {
         stack.load(models[part]);
         render.drawUnitCube(stack, part == 0 ? array<GLfloat, 3>{0.2f, 0.8f, 0.4f}
+                                 : part == 9 ? array<GLfloat, 3>{0.95f, 0.8f, 0.55f}
                                            : colors[(part - 1) % colors.size()]);
     }
 }
@@ -87,7 +88,7 @@ int main(int args, char* argv[]) {
             mesh = renderModel.getMesh();
         }
 
-        Window window(width, height, limbDemo ? "HumanGL | Torso and limbs" : windowName);
+        Window window(width, height, limbDemo ? "HumanGL | Articulated body" : windowName);
 
         if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
             throw runtime_error("Failed to initialize GLAD");

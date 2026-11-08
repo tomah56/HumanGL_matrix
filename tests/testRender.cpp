@@ -126,8 +126,10 @@ int main() {
             MatrixStack segment;
             segment.load(bodyModels[part]);
             render.drawUnitCube(segment, part == 0 ? std::array<GLfloat, 3>{0.2f, 0.8f, 0.4f}
+                                       : part == 9 ? std::array<GLfloat, 3>{0.95f, 0.8f, 0.55f}
                                                   : colors[(part - 1) % colors.size()]);
         }
+        expectPixel(320, 410, {242, 204, 140});
         expectPixel(320, 320, {51, 204, 102});
         expectPixel(268, 336, {255, 153, 51});
         expectPixel(372, 336, {255, 153, 51});
@@ -140,8 +142,8 @@ int main() {
         expectPixel(320, 221, {0, 0, 0});
         expectPixel(320, 440, {0, 0, 0});
         require(stack.top() == limbRoot && stack.size() == 1, "Limb traversal preserves its parent frame");
-        require(draws == 12 && clears == 3 && uploads == 0 && indexedCubeDraws,
-                "Torso and limbs must use exactly nine shared-cube draws without new uploads");
+        require(draws == 13 && clears == 3 && uploads == 0 && indexedCubeDraws,
+                "Complete body must use exactly ten shared-cube draws without new uploads");
         require(glGetError() == GL_NO_ERROR, "Limb rendering raised an OpenGL error");
 
         render.cleanUp();
@@ -150,7 +152,7 @@ int main() {
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, torso and attached limbs, and cleanup checks.\n";
+                     "legacy mesh mode, complete body, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';
