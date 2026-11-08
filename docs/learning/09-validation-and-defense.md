@@ -31,6 +31,9 @@ invalid inputs. These include the copied lower pair, shared movement, resizing,
 row spacing, and inherited root rotation. `testHumanoid` adds 190 assertions for
 torso-side and bottom attachments, torso and limb resizing, inherited rotation,
 head attachment and resizing, and rejected torso/head dimensions.
+`testLimbControls` adds 144 assertions for all eight independent segment controls,
+forward/back movement, descendants, key repeat/releases, modifier shortcuts,
+shared resizing, and reset. These are direct key-event checks without a window.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
@@ -150,6 +153,11 @@ The head stage also passed the macOS build, all CPU suites (including 190 body
 hierarchy assertions), and hidden OpenGL 4.1 rendering. The head stays attached
 after torso/head resizing and inherits root rotation; all ten parts use one
 cube draw each. Linux and physical input checks for this stage remain pending.
+
+The independent-control stage passed the macOS build, all CPU suites, and hidden
+OpenGL 4.1 rendering. Every arm and leg now has its own pose, with shared sizes.
+Key-event checks cover L/R plus A/D or Q/E, with L+K and R+T selecting the lower
+segments. Physical keyboard combinations and Linux remain untested for this stage.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented

@@ -6,9 +6,10 @@
 
 The two-part chain in [Arm.cpp](../../src/scene/Arm.cpp) is reused for two arms
 and two identical legs below them. Run `./humangl --limbs` (`--arms` and `--arm`
-remain aliases). Q/E moves shoulders and hips forward/back together; A/D moves
-elbows and knees. 1/2 changes all upper lengths, and 3/4 changes all lower lengths.
-`0` restores the shared dimensions and pose. Both joints rotate
+remain aliases). Hold L/R to choose a side; hold L+K or R+T for lower segments.
+A/D moves the selected arm segment forward/back, and Q/E moves the selected
+leg segment forward/back. 1/2 changes all upper lengths, and 3/4 changes all lower
+lengths. `0` restores the shared dimensions and all four poses. Both joints rotate
 about local X; positive pose angles use negative right-handed X rotation so a
 downward segment bends toward the shared local +Z forward direction. The view
 starts slightly turned to show depth.
@@ -21,8 +22,8 @@ forearm. The caller sends each result to the same `drawUnitCube()` method once.
 `pairedModelMatrices(parent, shoulderSpacing)` adds shoulder offsets of
 `-shoulderSpacing/2` and `+shoulderSpacing/2`, then evaluates the same chain with
 identical angles on both sides. It returns left upper/forearm followed by right
-upper/forearm. All controls modify the same `Arm` object; matching segments have
-the same orientation and differ only by their shoulder offset in the parent frame.
+upper/forearm. This earlier paired builder uses one `Arm` object; matching segments
+have the same orientation and differ only by their shoulder offset in the parent frame.
 This relationship follows the parent when it moves or rotates.
 
 The earlier `limbModelMatrices(parent, pairSpacing, rowGap)` evaluates the same pair twice.
@@ -34,12 +35,14 @@ blocks use the same drawing method and shared pose.
 The current scene uses [Humanoid.cpp](../../src/scene/Humanoid.cpp) instead:
 its root is the torso center. It scales one cube for the torso, attaches arms at
 `(±(torso.width + upper.width)/2, torso.length/2, 0)`, and places hips at
-`(±torso.width/4, -torso.length/2, 0)`. Both pairs reuse `pairedModelMatrices()`.
+`(±torso.width/4, -torso.length/2, 0)`. Each limb reuses `Arm::modelMatrices()`
+with its own pose from `HumanoidPose` and shared `limbDimensions`.
 Attachments use the unscaled torso frame, so torso resizing repositions the
 limbs without stretching them. The head cube is centered at
 `(0, (torso.length + head.length)/2, 0)`, keeping its base on the torso's top.
 Its dimensions are independent of torso scaling. All ten parts inherit root
-motion; the legs intentionally share the arms' movement controls.
+motion. Upper-joint movement carries that limb's lower segment; lower-joint
+movement changes only the lower segment. Other branches keep their poses.
 
 A joint frame is a moving coordinate system. For a child joint:
 

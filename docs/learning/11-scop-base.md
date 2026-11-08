@@ -79,8 +79,8 @@ establish correctness of every matrix operation or the future hierarchy.
    row-major matrices, keeps a base identity, and rejects overflow/underflow
    without mutation. The `--cubes` demo draws independent siblings from a shared
    parent. `--limbs` (also `--arms` or `--arm`) reuses the two-part chain four
-   times: two arms and two identical legs beneath them. All share dimensions,
-   controls, and forward-bending angles. `Humanoid` now attaches the arm pair to
+   times: two arms and two legs beneath them. Dimensions are shared; joint poses
+   are independent. `Humanoid` now attaches the arm pair to
    the torso's sides, the leg pair underneath it, and the head on top, drawing
    all ten body parts.
 5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
@@ -135,12 +135,13 @@ scop classes. Example assets and the original scop project remain unchanged.
 4. **Inspect the frame boundary.** `beginFrame(camera)` clears once and uploads
    view/projection. Each part draw uploads its own model/color. Use
    `make test-render` to check draw counts, shared VAO, pixels, and stack state.
-5. **Inspect the implemented limb pairs.** Read `scene/Arm.cpp` and run
-   `./humangl --limbs`. `pairedModelMatrices()` evaluates the same chain at two
-   attachments. `limbModelMatrices()` reuses it below the arms, offset by the
-   two segment lengths plus `rowGap` (default 0.6). All four chains have identical
-   X-axis joint rotations and shared dimensions. Geometry scale is pushed/popped
-   separately; change a control to see every limb follow it.
+5. **Inspect the implemented limbs.** Read `scene/Arm.cpp` and run
+   `./humangl --limbs`. The earlier `pairedModelMatrices()` and
+   `limbModelMatrices()` demonstrate copying a shared pose. The current
+   `Humanoid` evaluates each chain separately with its own `HumanoidPose` entry
+   and shared dimensions. Hold L/R to select a side and L+K or R+T for lower
+   segments. Use A/D for arms and Q/E for legs. Geometry scale stays separate
+   from joint inheritance; moving a lower segment affects only that segment.
 6. **Complete all ten parts.** Inspect `Humanoid::modelMatrices()`: its centered
    torso and dimension-derived shoulder/hip attachments connect the four chains.
    The head's base follows the torso's top. It returns ten models while keeping
