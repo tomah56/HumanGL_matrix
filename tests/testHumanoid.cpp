@@ -35,6 +35,38 @@ GLfloat axisLength(const MatrixStack::Matrix &matrix, int axis) {
     return std::sqrt(matrix[axis] * matrix[axis] + matrix[4 + axis] * matrix[4 + axis]
                      + matrix[8 + axis] * matrix[8 + axis]);
 }
+
+void testSidewaysArmJoints() {
+    Humanoid body;
+    body.pose = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
+    MatrixStack parent;
+    const auto original = parent.top();
+    const auto rest = body.modelMatrices(parent);
+    body.setJointAngle(Joint::RightShoulderSide, 90);
+    body.setJointAngle(Joint::RightElbowSide, 90);
+    auto models = body.modelMatrices(parent);
+    expectPoint(pointAt(models[3], {0, -0.5f, 0}), {2.21f, 0.9f, 0}, "Sideways shoulder raises upper arm");
+    expectPoint(pointAt(models[4], {0, 0.5f, 0}), {2.21f, 0.9f, 0}, "Sideways elbow stays connected");
+    expectPoint(pointAt(models[4], {0, -0.5f, 0}), {2.21f, 2.1f, 0}, "Sideways forearm points upward");
+    for (int part : {0, 1, 2, 5, 6, 7, 8, 9}) {
+        require(models[part] == rest[part], "Sideways arm motion preserves all other branches");
+    }
+    const auto upper = models[3];
+    const auto forearm = models[4];
+    body.moveJoint(Joint::RightElbowSide, -45);
+    models = body.modelMatrices(parent);
+    require(models[3] == upper && models[4] != forearm, "Sideways elbow movement changes only forearm");
+    require(parent.top() == original && parent.size() == 1, "Sideways joints preserve parent stack");
+    for (bool shoulder : {false, true}) {
+        Humanoid invalid = body;
+        (shoulder ? invalid.pose.rightArm.shoulderSideDegrees : invalid.pose.rightArm.elbowSideDegrees)
+            = std::numeric_limits<GLfloat>::quiet_NaN();
+        bool rejected = false;
+        try { invalid.modelMatrices(parent); }
+        catch (const std::invalid_argument &) { rejected = true; }
+        require(rejected && parent.top() == original, "Reject nonfinite sideways joint angles");
+    }
+}
 }
 
 int main() {
@@ -137,6 +169,7 @@ int main() {
                 *dimension = previous;
             }
         }
+        testSidewaysArmJoints();
         std::cout << "Passed " << checks << " body/attachment hierarchy assertions.\n";
         return 0;
     } catch (const std::exception &error) {

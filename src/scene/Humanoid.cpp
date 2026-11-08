@@ -13,6 +13,10 @@ GLfloat Humanoid::jointAngle(Joint joint) const {
         case Joint::LeftKnee: return pose.leftLeg.elbowDegrees;
         case Joint::RightHip: return pose.rightLeg.shoulderDegrees;
         case Joint::RightKnee: return pose.rightLeg.elbowDegrees;
+        case Joint::LeftShoulderSide: return pose.leftArm.shoulderSideDegrees;
+        case Joint::LeftElbowSide: return pose.leftArm.elbowSideDegrees;
+        case Joint::RightShoulderSide: return pose.rightArm.shoulderSideDegrees;
+        case Joint::RightElbowSide: return pose.rightArm.elbowSideDegrees;
         default: throw std::invalid_argument("Unknown body joint");
     }
 }
@@ -28,6 +32,10 @@ void Humanoid::setJointAngle(Joint joint, GLfloat angle) {
         case Joint::LeftKnee: pose.leftLeg.elbowDegrees = angle; break;
         case Joint::RightHip: pose.rightLeg.shoulderDegrees = angle; break;
         case Joint::RightKnee: pose.rightLeg.elbowDegrees = angle; break;
+        case Joint::LeftShoulderSide: pose.leftArm.shoulderSideDegrees = angle; break;
+        case Joint::LeftElbowSide: pose.leftArm.elbowSideDegrees = angle; break;
+        case Joint::RightShoulderSide: pose.rightArm.shoulderSideDegrees = angle; break;
+        case Joint::RightElbowSide: pose.rightArm.elbowSideDegrees = angle; break;
         default: throw std::invalid_argument("Unknown body joint");
     }
 }

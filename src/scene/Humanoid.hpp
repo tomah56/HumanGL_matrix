@@ -4,7 +4,8 @@
 
 enum class Joint {
     LeftShoulder, LeftElbow, RightShoulder, RightElbow,
-    LeftHip, LeftKnee, RightHip, RightKnee, Count
+    LeftHip, LeftKnee, RightHip, RightKnee,
+    LeftShoulderSide, LeftElbowSide, RightShoulderSide, RightElbowSide, Count
 };
 
 struct HumanoidPose {

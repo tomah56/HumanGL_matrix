@@ -25,6 +25,12 @@ void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, i
             case GLFW_KEY_V:
                 inputData->player->play(animation::jumpingSequence(), *inputData->body);
                 return;
+            case GLFW_KEY_N:
+                inputData->player->play(animation::armWaveDanceSequence(), *inputData->body);
+                return;
+            case GLFW_KEY_M:
+                inputData->player->play(animation::greetingWaveSequence(), *inputData->body);
+                return;
             case GLFW_KEY_B: {
                 inputData->player->stop();
                 animation::standStill(*inputData->body);

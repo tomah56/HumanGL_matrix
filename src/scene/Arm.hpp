@@ -18,6 +18,9 @@ struct ArmDimensions {
 struct ArmPose {
     GLfloat shoulderDegrees = 20.0f;
     GLfloat elbowDegrees = 65.0f;
+    // Sideways Z rotations are applied before each joint's forward X bend.
+    GLfloat shoulderSideDegrees = 0.0f;
+    GLfloat elbowSideDegrees = 0.0f;
 };
 
 class Arm {

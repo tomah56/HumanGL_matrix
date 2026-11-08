@@ -25,17 +25,20 @@ MatrixStack::Matrix segmentModel(MatrixStack &joint, const SegmentDimensions &se
 std::array<MatrixStack::Matrix, 2> Arm::modelMatrices(const MatrixStack &parent) const {
     validate(dimensions.upper);
     validate(dimensions.forearm);
-    if (!std::isfinite(pose.shoulderDegrees) || !std::isfinite(pose.elbowDegrees)) {
+    if (!std::isfinite(pose.shoulderDegrees) || !std::isfinite(pose.elbowDegrees)
+        || !std::isfinite(pose.shoulderSideDegrees) || !std::isfinite(pose.elbowSideDegrees)) {
         throw std::invalid_argument("Arm joint angles must be finite");
     }
 
     MatrixStack joints = parent;
+    joints.rotateZ(pose.shoulderSideDegrees);
     joints.rotateX(-pose.shoulderDegrees);
     const auto upper = segmentModel(joints, dimensions.upper);
 
     // The geometry scale was popped: the elbow inherits the shoulder rotation
     // and upper-arm length, while the forearm retains its own dimensions.
     joints.translate(0.0f, -dimensions.upper.length, 0.0f);
+    joints.rotateZ(pose.elbowSideDegrees);
     joints.rotateX(-pose.elbowDegrees);
     const auto forearm = segmentModel(joints, dimensions.forearm);
     return {upper, forearm};

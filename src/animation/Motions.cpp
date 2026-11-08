@@ -7,7 +7,9 @@ const Sequence &walkingSequence() {
             to(Joint::LeftHip, 25), to(Joint::RightHip, -25),
             to(Joint::LeftKnee, -30), to(Joint::RightKnee, 0),
             to(Joint::LeftShoulder, -20), to(Joint::RightShoulder, 20),
-            to(Joint::LeftElbow, 10), to(Joint::RightElbow, 25)
+            to(Joint::LeftElbow, 10), to(Joint::RightElbow, 25),
+            to(Joint::LeftShoulderSide, 0), to(Joint::RightShoulderSide, 0),
+            to(Joint::LeftElbowSide, 0), to(Joint::RightElbowSide, 0)
         }),
         step(0.4, {
             to(Joint::LeftHip, -25), to(Joint::RightHip, 25),
@@ -26,7 +28,9 @@ const Sequence &jumpingSequence() {
             to(Joint::LeftHip, 35), to(Joint::RightHip, 35),
             to(Joint::LeftKnee, -70), to(Joint::RightKnee, -70),
             to(Joint::LeftShoulder, -15), to(Joint::RightShoulder, -15),
-            to(Joint::LeftElbow, 25), to(Joint::RightElbow, 25)
+            to(Joint::LeftElbow, 25), to(Joint::RightElbow, 25),
+            to(Joint::LeftShoulderSide, 0), to(Joint::RightShoulderSide, 0),
+            to(Joint::LeftElbowSide, 0), to(Joint::RightElbowSide, 0)
         }),
         step(0.30, {
             to(Joint::LeftHip, 5), to(Joint::RightHip, 5),
@@ -48,6 +52,59 @@ const Sequence &jumpingSequence() {
         })
     });
     return jump;
+}
+
+const Sequence &armWaveDanceSequence() {
+    static const Sequence dance = repeat({
+        step(0.35, {
+            to(Joint::LeftShoulder, 0), to(Joint::RightShoulder, 0),
+            to(Joint::LeftElbow, 10), to(Joint::RightElbow, 10),
+            to(Joint::LeftHip, 8), to(Joint::RightHip, -8),
+            to(Joint::LeftKnee, -10), to(Joint::RightKnee, 0),
+            to(Joint::LeftShoulderSide, -80), to(Joint::RightShoulderSide, 80),
+            to(Joint::LeftElbowSide, -60), to(Joint::RightElbowSide, 10)
+        }),
+        step(0.30, {
+            to(Joint::LeftShoulderSide, -110), to(Joint::RightShoulderSide, 80),
+            to(Joint::LeftElbowSide, 25), to(Joint::RightElbowSide, 60),
+            to(Joint::LeftHip, -8), to(Joint::RightHip, 8),
+            to(Joint::LeftKnee, 0), to(Joint::RightKnee, -10)
+        }),
+        step(0.30, {
+            to(Joint::LeftShoulderSide, -80), to(Joint::RightShoulderSide, 110),
+            to(Joint::LeftElbowSide, -10), to(Joint::RightElbowSide, -25),
+            to(Joint::LeftHip, 8), to(Joint::RightHip, -8),
+            to(Joint::LeftKnee, -10), to(Joint::RightKnee, 0)
+        }),
+        step(0.30, {
+            to(Joint::LeftShoulderSide, -80), to(Joint::RightShoulderSide, 80),
+            to(Joint::LeftElbowSide, -60), to(Joint::RightElbowSide, 45),
+            to(Joint::LeftHip, -8), to(Joint::RightHip, 8),
+            to(Joint::LeftKnee, 0), to(Joint::RightKnee, -10)
+        })
+    });
+    return dance;
+}
+
+const Sequence &greetingWaveSequence() {
+    static const Sequence wave = once({
+        step(0.45, {
+            to(Joint::LeftShoulder, 0), to(Joint::RightShoulder, 0),
+            to(Joint::LeftElbow, 0), to(Joint::RightElbow, 0),
+            to(Joint::LeftHip, 0), to(Joint::RightHip, 0),
+            to(Joint::LeftKnee, 0), to(Joint::RightKnee, 0),
+            to(Joint::LeftShoulderSide, 0), to(Joint::LeftElbowSide, 0),
+            to(Joint::RightShoulderSide, 70), to(Joint::RightElbowSide, 90)
+        }),
+        step(0.22, {to(Joint::RightElbowSide, 60)}),
+        step(0.22, {to(Joint::RightElbowSide, 110)}),
+        step(0.22, {to(Joint::RightElbowSide, 60)}),
+        step(0.22, {to(Joint::RightElbowSide, 110)}),
+        step(0.22, {to(Joint::RightElbowSide, 60)}),
+        step(0.22, {to(Joint::RightElbowSide, 110)}),
+        step(0.40, {to(Joint::RightShoulderSide, 0), to(Joint::RightElbowSide, 0)})
+    });
+    return wave;
 }
 
 void standStill(Humanoid &body) {

@@ -171,13 +171,31 @@ int main() {
                 "Jumping body keeps ten shared-cube draws without geometry uploads");
         require(glGetError() == GL_NO_ERROR, "Jump rendering raised an OpenGL error");
 
+        player.play(animation::greetingWaveSequence(), body);
+        player.update(0.45, body);
+        const auto waveModels = body.modelMatrices(root);
+        render.beginFrame(camera);
+        for (std::size_t part = 0; part < waveModels.size(); ++part) {
+            MatrixStack segment;
+            segment.load(waveModels[part]);
+            render.drawUnitCube(segment, part == 0 ? std::array<GLfloat, 3>{0.2f, 0.8f, 0.4f}
+                                       : part == 9 ? std::array<GLfloat, 3>{0.95f, 0.8f, 0.55f}
+                                                  : colors[(part - 1) % colors.size()]);
+        }
+        expectPixel(399, 345, {255, 153, 51});
+        expectPixel(445, 362, {64, 140, 255});
+        expectPixel(320, 310, {51, 204, 102});
+        require(draws == 33 && clears == 5 && uploads == 0 && indexedCubeDraws,
+                "Greeting wave keeps ten shared-cube draws without geometry uploads");
+        require(glGetError() == GL_NO_ERROR, "Greeting wave rendering raised an OpenGL error");
+
         render.cleanUp();
         render.cleanUp();
         require(glIsProgram(shader.getShaderProgram()), "Renderer must not delete a borrowed shader program");
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, complete body, jump apex, and cleanup checks.\n";
+                     "legacy mesh mode, complete body, jump apex, greeting wave, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';

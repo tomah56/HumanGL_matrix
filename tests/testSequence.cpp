@@ -125,6 +125,57 @@ void testJumpAndManualControl() {
     near(body.jointAngle(Joint::RightElbow), 0, "Stand-still action uses a straight resting pose");
 }
 
+void testDanceAndGreeting() {
+    Humanoid body;
+    SequencePlayer player;
+    player.play(armWaveDanceSequence(), body);
+    player.update(0.35, body);
+    require(body.jointAngle(Joint::LeftShoulderSide) < 0
+            && body.jointAngle(Joint::RightShoulderSide) > 0, "Dance raises arms to opposite sides");
+    const GLfloat leftElbow = body.jointAngle(Joint::LeftElbowSide);
+    const GLfloat rightElbow = body.jointAngle(Joint::RightElbowSide);
+    player.update(0.30, body);
+    require(body.jointAngle(Joint::LeftElbowSide) != leftElbow
+            && body.jointAngle(Joint::RightElbowSide) != rightElbow, "Dance wave travels through both elbows");
+    player.update(20, body);
+    require(player.isPlaying(), "Dance continues looping");
+    near(player.heightOffset(), 0, "Dance stays at its starting height");
+
+    player.play(greetingWaveSequence(), body);
+    player.update(0.45, body);
+    near(body.jointAngle(Joint::RightShoulderSide), 70, "Greeting raises the right arm");
+    near(body.jointAngle(Joint::LeftShoulderSide), 0, "Greeting rests the left arm");
+    player.update(0.22, body);
+    near(body.jointAngle(Joint::RightElbowSide), 60, "Greeting swings the forearm outward");
+    player.update(0.22, body);
+    near(body.jointAngle(Joint::RightElbowSide), 110, "Greeting swings the forearm back");
+    player.update(10, body);
+    require(!player.isPlaying(), "Greeting finishes after waving");
+    for (int joint = 0; joint < static_cast<int>(Joint::Count); ++joint) {
+        near(body.jointAngle(static_cast<Joint>(joint)), 0, "Greeting lowers arm and ends standing still");
+    }
+    for (bool jump : {false, true}) {
+        player.play(armWaveDanceSequence(), body);
+        player.update(0.35, body);
+        player.play(jump ? jumpingSequence() : walkingSequence(), body);
+        player.update(jump ? 0.18 : 0.4, body);
+        for (Joint joint : {Joint::LeftShoulderSide, Joint::LeftElbowSide,
+                            Joint::RightShoulderSide, Joint::RightElbowSide}) {
+            near(body.jointAngle(joint), 0, "Walk/jump reset lateral angles left over from dancing");
+        }
+    }
+    Humanoid fast, slow;
+    SequencePlayer fastPlayer, slowPlayer;
+    fastPlayer.play(armWaveDanceSequence(), fast);
+    slowPlayer.play(armWaveDanceSequence(), slow);
+    slowPlayer.update(2.5, slow);
+    for (int frame = 0; frame < 300; ++frame) fastPlayer.update(1.0 / 120.0, fast);
+    for (int joint = 0; joint < static_cast<int>(Joint::Count); ++joint) {
+        near(fast.jointAngle(static_cast<Joint>(joint)), slow.jointAngle(static_cast<Joint>(joint)),
+             "Dance is independent of frame rate");
+    }
+}
+
 void testValidation() {
     Humanoid body;
     SequencePlayer player;
@@ -175,6 +226,7 @@ int main() {
         testInterpolation();
         testLoopsAndFrameRate();
         testJumpAndManualControl();
+        testDanceAndGreeting();
         testValidation();
         std::cout << "Passed " << checks << " sequence playback assertions.\n";
         return 0;

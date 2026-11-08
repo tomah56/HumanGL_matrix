@@ -51,6 +51,8 @@ The previous `--arms` and `--arm` commands are aliases for the same scene.
 | C | Start/restart the looping walk in place. |
 | V | Start/restart the jump; finish standing still. |
 | B | Stop playback and stand still. |
+| N | Start/restart the looping arm-wave dance. |
+| M | Raise the right arm, wave three times, then lower it. |
 | 1 / 2 | Shorten / lengthen upper arms and thighs together. |
 | 3 / 4 | Shorten / lengthen forearms and lower legs together. |
 | 0 | Restore all four limbs' default joint angles and dimensions. |
@@ -77,7 +79,8 @@ stretch the head or attached limbs.
 
 ## Define a movement sequence in C++
 
-Edit [Motions.cpp](src/animation/Motions.cpp) to change walking and jumping.
+Edit [Motions.cpp](src/animation/Motions.cpp) to change walking, jumping, dancing,
+and the greeting wave.
 Each step moves all listed joints together toward absolute angles in degrees;
 its first argument is the duration in seconds. Omitted joints keep their angles:
 
@@ -95,6 +98,11 @@ Use `once({...})` to stop at the final pose. The optional third argument to
 jump apex. A new sequence starts from the current joint angles and zero height
 offset. The jump crouches, rises, lands, and straightens; walking repeats in place.
 The initial view leaves room for the jump.
+The dance passes a wave between the arms with small leg movements. The greeting
+wave raises and swings the right forearm. `LeftShoulderSide`, `RightShoulderSide`,
+`LeftElbowSide`, and `RightElbowSide` add local Z rotations for these sideways
+gestures. Walk/jump reset those angles; B straightens all joints. The body still
+uses the same ten cubes, with the forearm end representing the waving hand.
 
 The main loop calls `player.update(deltaTime, body)` before drawing. Playback
 interpolates from each step's starting angles, carries leftover time into later
