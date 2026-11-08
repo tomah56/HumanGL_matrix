@@ -126,7 +126,8 @@ int main(int args, char* argv[]) {
         // Set up user input
         window.setUpUserInput(inputData);
         if (limbDemo) {
-            cout << "Limbs: Q/E shoulders and hips, A/D elbows and knees, "
+            cout << "Body: Left/Right rotate (Shift faster). "
+                    "Limbs: Q/E shoulders and hips, A/D elbows and knees, "
                     "1/2 all upper lengths, 3/4 all lower lengths, "
                     "0 reset all four limbs. Escape closes.\n";
         }

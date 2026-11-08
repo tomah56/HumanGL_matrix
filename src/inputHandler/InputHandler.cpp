@@ -21,6 +21,18 @@ void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, i
         && !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER))) {
         Arm &arm = *inputData->arm;
         switch (key) {
+            case GLFW_KEY_LEFT:
+            case GLFW_KEY_RIGHT: {
+                // The inherited Y rotation maps positive angles toward local -X.
+                const GLfloat angle = (key == GLFW_KEY_LEFT ? 5.0f : -5.0f)
+                    * ((mods & GLFW_MOD_SHIFT) ? 3.0f : 1.0f);
+                auto &transformation = *inputData->transformation;
+                transformation.transform.rotationY += angle;
+                if (transformation.animationState.isRotate) {
+                    transformation.transform.baseRotationY += angle;
+                }
+                return;
+            }
             case GLFW_KEY_Q: arm.pose.shoulderDegrees -= 5.0f; return;
             case GLFW_KEY_E: arm.pose.shoulderDegrees += 5.0f; return;
             case GLFW_KEY_A: arm.pose.elbowDegrees -= 5.0f; return;

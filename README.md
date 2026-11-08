@@ -45,6 +45,7 @@ The previous `--arms` and `--arm` commands are aliases for the same scene.
 | 1 / 2 | Shorten / lengthen upper arms and thighs together. |
 | 3 / 4 | Shorten / lengthen forearms and lower legs together. |
 | 0 | Restore all four limbs' default joint angles and dimensions. |
+| Left / Right arrow | Turn the whole body left / right; hold to repeat. Shift turns faster. |
 | Mouse drag | Rotate the whole group. |
 | Escape | Close the window. |
 
