@@ -24,10 +24,11 @@ become available to cover the rest of the guide:
 It also includes 100 matrix-stack assertions for copying/restoring frames,
 composition, sibling independence, bounds, reset, and null inputs. A separate
 CPU executable checks the procedural cube's extent, closed surface, winding,
-and unit face areas. `testArm` now runs 420 single/aligned-arm assertions for
+and unit face areas. `testArm` now runs 549 arm/leg hierarchy assertions for
 pivot positions, parent inheritance, isolated elbow rotation, shared resizing,
 matching forward orientations, shoulder spacing, unchanged child dimensions, and
-invalid inputs. The complete
+invalid inputs. These include the copied lower pair, shared movement, resizing,
+row spacing, and inherited root rotation. The complete
 body's remaining joint relationships are still to implement.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
@@ -98,7 +99,7 @@ The current viewer commands, from the repository root, are:
 ```sh
 make
 make test
-./humangl --arms
+./humangl --limbs
 ./humangl --cubes
 ./humangl models/cube.obj textureSources/wood.bmp
 ```
@@ -130,6 +131,13 @@ physical keyboard/mouse interaction remains a manual check.
 On 8 November 2026, the forward-facing version passed all CPU suites and the
 hidden-render checks on macOS/OpenGL 4.1 and Ubuntu/Mesa/OpenGL 4.5. Both chains
 use identical forward-bending rotations; the arm suite now contains 420 assertions.
+
+The copied-leg stage subsequently passed the macOS build, all CPU suites
+(including 549 limb hierarchy assertions), and the hidden OpenGL 4.1 render
+check. It verifies eight colored limb blocks, the vertical gap, exactly eight
+cube draws, no geometry reupload, and the unchanged parent frame. All four limbs
+share one pose and dimension set. Linux and physical input checks for this
+stage remain pending.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented

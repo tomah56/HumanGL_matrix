@@ -75,12 +75,13 @@ establish correctness of every matrix operation or the future hierarchy.
 3. **Y rotation uses the opposite sign from the guide's right-hand convention.**
    `rotateY(+90°)` maps +Z to −X, while the chosen right-hand convention expects
    +X. Standardize the signs, including input direction, before defining a gait.
-4. **Matrix stack and first arm — implemented.** `MatrixStack` copies complete
+4. **Matrix stack and limb chains — implemented.** `MatrixStack` copies complete
    row-major matrices, keeps a base identity, and rejects overflow/underflow
    without mutation. The `--cubes` demo draws independent siblings from a shared
-   parent. `--arms` (also `--arm`) reuses the upper-arm/forearm chain twice with
-   identical forward-bending angles, shared controls, and separate shoulder attachments.
-   Completing the ten-part body remains the next stage.
+   parent. `--limbs` (also `--arms` or `--arm`) reuses the two-part chain four
+   times: two arms and two identical legs beneath them. All share dimensions,
+   controls, and forward-bending angles. Completing the torso/head and their
+   attachments remains the next stage.
 5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
    `makeUnitCubeMesh()` creates fixed ±0.5 geometry and 36 indices. Each renderer
    uploads that cube once. `drawUnitCube(stack, color)` reads the current matrix
@@ -133,10 +134,12 @@ scop classes. Example assets and the original scop project remain unchanged.
 4. **Inspect the frame boundary.** `beginFrame(camera)` clears once and uploads
    view/projection. Each part draw uploads its own model/color. Use
    `make test-render` to check draw counts, shared VAO, pixels, and stack state.
-5. **Inspect the implemented arm pair.** Read `scene/Arm.cpp` and run
-   `./humangl --arms`. The same chain is evaluated at two shoulder attachments
-   using identical X-axis joint rotations and shared dimensions. Geometry scale is
-   pushed/popped separately; change a control to see both sides follow it.
+5. **Inspect the implemented limb pairs.** Read `scene/Arm.cpp` and run
+   `./humangl --limbs`. `pairedModelMatrices()` evaluates the same chain at two
+   attachments. `limbModelMatrices()` reuses it below the arms, offset by the
+   two segment lengths plus `rowGap` (default 0.6). All four chains have identical
+   X-axis joint rotations and shared dimensions. Geometry scale is pushed/popped
+   separately; change a control to see every limb follow it.
 6. **Build all ten parts.** Add dimensions and pose data plus a `Humanoid` traversal
    with torso/head, two arm chains, and two leg chains. Calculate attachments from
    dimensions each frame. Ten body parts must reach the cube drawing method once
@@ -167,7 +170,7 @@ existing classes rather than introduce another window or rendering framework.
 - Linux compilation/rendering and manual interaction results are recorded in
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.
-- Both two-part arms are implemented; the complete humanoid and animation
+- Two arms and two identical two-part legs are implemented; the complete humanoid and animation
   system remain pending.
 
 ## Shared cube and stack checks
@@ -184,11 +187,11 @@ Ubuntu/Mesa/OpenGL 4.5 on 7 November 2026. The Mac sampler warning observed duri
 development was resolved by the renderer-owned white fallback texture; a later
 check passed without that warning.
 
-The arm tests now include 420 single/aligned-chain assertions. Run
-`./humangl --arms` to explore shared joint controls, matching forward movement,
-length-dependent elbow placement, and configurable shoulder spacing. The render
-test checks orange/blue pixels on both sides, the gap between them, and exactly
-four draws for the pair.
+The limb tests now include 549 hierarchy assertions. Run `./humangl --limbs` to
+explore shared joint controls, matching forward movement, length-dependent
+elbow/knee placement, and configurable pair spacing and row gap. The render
+test checks orange/blue pixels in all eight blocks, gaps between them, and
+exactly eight draws for the limbs.
 
 The aligned-arm checks verify equal segment orientations and fixed shoulder
 spacing as the shared shoulder/elbow controls change. Positive flexion bends
@@ -196,3 +199,8 @@ both chains toward local +Z; no left-side angle inversion is applied.
 
 The forward-facing version passed CPU and hidden-render checks on macOS and
 Ubuntu on 8 November 2026, including all 420 arm assertions.
+
+The subsequent copied-leg stage passed the build, all CPU suites (including
+549 limb assertions), and hidden rendering on macOS/OpenGL 4.1. Its eight-part
+render check verifies shared buffers, one draw per block, and parent preservation.
+This stage has not yet been rerun on Linux or checked with physical input.

@@ -4,10 +4,11 @@
 
 ## What you are learning
 
-The two-part chain in [Arm.cpp](../../src/scene/Arm.cpp) is now reused for two arms.
-Run `./humangl --arms` (or `--arm`). Q/E moves both shoulders forward/back together,
-A/D moves both elbows, 1/2 changes both upper-arm lengths, and 3/4 changes both
-forearm lengths. `0` restores the shared dimensions and pose. Both joints rotate
+The two-part chain in [Arm.cpp](../../src/scene/Arm.cpp) is reused for two arms
+and two identical legs below them. Run `./humangl --limbs` (`--arms` and `--arm`
+remain aliases). Q/E moves shoulders and hips forward/back together; A/D moves
+elbows and knees. 1/2 changes all upper lengths, and 3/4 changes all lower lengths.
+`0` restores the shared dimensions and pose. Both joints rotate
 about local X; positive pose angles use negative right-handed X rotation so a
 downward segment bends toward the shared local +Z forward direction. The view
 starts slightly turned to show depth.
@@ -22,8 +23,15 @@ forearm. The caller sends each result to the same `drawUnitCube()` method once.
 identical angles on both sides. It returns left upper/forearm followed by right
 upper/forearm. All controls modify the same `Arm` object; matching segments have
 the same orientation and differ only by their shoulder offset in the parent frame.
-This relationship follows the parent when it moves or rotates. The head, torso,
-and four leg segments remain to implement.
+This relationship follows the parent when it moves or rotates.
+
+`limbModelMatrices(parent, pairSpacing, rowGap)` evaluates the same pair twice.
+The second pair uses a parent translated down by
+`upper.length + forearm.length + rowGap`, so the rest-pose gap follows resizing.
+It returns the four arm matrices followed by the four leg matrices. All eight
+blocks use the same drawing method and shared pose. The head, torso, and their
+attachment rules remain to implement; the current legs intentionally move
+exactly like the arms.
 
 A joint frame is a moving coordinate system. For a child joint:
 
@@ -150,7 +158,8 @@ scene geometry out of that body count.
 `make test` now includes the two-part arm cases below, plus inherited 3D root
 motion, resizing, isolated elbow movement, preserved forearm dimensions, unchanged
 parent stack, and rejected invalid dimensions/angles. `make test-render` also
-checks the visible upper-arm and forearm colors and exactly two indexed draws.
+checks the colors of all eight limb blocks, gaps between the pairs, and exactly
+eight indexed draws for the limb scene.
 
 Build just a shoulder and two arm segments first. Set the shoulder at the origin,
 upper length 2, lower length 1, and both angles to zero. The upper cube center is
