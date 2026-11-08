@@ -3,6 +3,39 @@
 #include <cmath>
 #include <stdexcept>
 
+GLfloat Humanoid::jointAngle(Joint joint) const {
+    switch (joint) {
+        case Joint::LeftShoulder: return pose.leftArm.shoulderDegrees;
+        case Joint::LeftElbow: return pose.leftArm.elbowDegrees;
+        case Joint::RightShoulder: return pose.rightArm.shoulderDegrees;
+        case Joint::RightElbow: return pose.rightArm.elbowDegrees;
+        case Joint::LeftHip: return pose.leftLeg.shoulderDegrees;
+        case Joint::LeftKnee: return pose.leftLeg.elbowDegrees;
+        case Joint::RightHip: return pose.rightLeg.shoulderDegrees;
+        case Joint::RightKnee: return pose.rightLeg.elbowDegrees;
+        default: throw std::invalid_argument("Unknown body joint");
+    }
+}
+
+void Humanoid::setJointAngle(Joint joint, GLfloat angle) {
+    if (!std::isfinite(angle)) throw std::invalid_argument("Joint angle must be finite");
+    switch (joint) {
+        case Joint::LeftShoulder: pose.leftArm.shoulderDegrees = angle; break;
+        case Joint::LeftElbow: pose.leftArm.elbowDegrees = angle; break;
+        case Joint::RightShoulder: pose.rightArm.shoulderDegrees = angle; break;
+        case Joint::RightElbow: pose.rightArm.elbowDegrees = angle; break;
+        case Joint::LeftHip: pose.leftLeg.shoulderDegrees = angle; break;
+        case Joint::LeftKnee: pose.leftLeg.elbowDegrees = angle; break;
+        case Joint::RightHip: pose.rightLeg.shoulderDegrees = angle; break;
+        case Joint::RightKnee: pose.rightLeg.elbowDegrees = angle; break;
+        default: throw std::invalid_argument("Unknown body joint");
+    }
+}
+
+void Humanoid::moveJoint(Joint joint, GLfloat delta) {
+    setJointAngle(joint, jointAngle(joint) + delta);
+}
+
 std::array<MatrixStack::Matrix, 10> Humanoid::modelMatrices(const MatrixStack &parent) const {
     if (!std::isfinite(torso.width) || !std::isfinite(torso.length)
         || !std::isfinite(torso.depth) || torso.width <= 0.0f

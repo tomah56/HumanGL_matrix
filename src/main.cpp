@@ -14,6 +14,7 @@
 #include "scene/Material.hpp"
 #include "scene/Camera.hpp"
 #include "scene/Humanoid.hpp"
+#include "animation/Sequence.hpp"
 #include "inputHandler/InputData.hpp"
 
 using namespace std;
@@ -53,9 +54,11 @@ static void drawCubeDemo(const Render &render, const Transformation &transformat
     }
 }
 
-static void drawBody(const Render &render, const Humanoid &body, const Transformation &transformation) {
+static void drawBody(const Render &render, const Humanoid &body,
+                     const Transformation &transformation, GLfloat height) {
     MatrixStack stack;
-    stack.load(transformation.modelMatrix);
+    stack.translate(0.0f, height, 0.0f);
+    stack.multiply(transformation.modelMatrix);
     const auto models = body.modelMatrices(stack);
     const array<array<GLfloat, 3>, 2> colors = {{{1.0f, 0.6f, 0.2f}, {0.25f, 0.55f, 1.0f}}};
     for (size_t part = 0; part < models.size(); ++part) {
@@ -104,6 +107,7 @@ int main(int args, char* argv[]) {
         if (!primitiveDemo) texture = make_unique<Texture>(argv[2]);
 
         Humanoid body;
+        animation::SequencePlayer player;
         Transformation transformation;
         if (primitiveDemo) {
             transformation.animationState.isRotate = false;
@@ -114,19 +118,23 @@ int main(int args, char* argv[]) {
             transformation.transform.translationX = 0.0f;
             transformation.transform.translationY = (body.limbDimensions.upper.length
                 + body.limbDimensions.forearm.length) / 2.0f;
-            transformation.transform.translationZ = -9.0f;
+            transformation.transform.translationZ = -11.0f; // Leave room above the head for jumping.
             transformation.minZ = -20.0f;
             transformation.transform.rotationY = 25.0f;
         }
         Material material;
         Camera camera((GLfloat)window.getScreenWidth(), (GLfloat)window.getScreenHeight());
         InputData inputData = {&transformation, &material, &camera};
-        if (limbDemo) inputData.body = &body;
+        if (limbDemo) {
+            inputData.body = &body;
+            inputData.player = &player;
+        }
 
         // Set up user input
         window.setUpUserInput(inputData);
         if (limbDemo) {
             cout << "Body: Left/Right rotate (Shift faster). "
+                    "F5 walk, F6 jump, F7 stand still. "
                     "Hold L/R for left/right; L+K or R+T for lower segments. "
                     "A/D arm forward/back, Q/E leg forward/back. "
                     "1/2 all upper lengths, 3/4 all lower lengths, "
@@ -155,11 +163,12 @@ int main(int args, char* argv[]) {
             prevTime = currentTime;
 
             updateViewer(deltaTime, transformation, material);
+            if (limbDemo) player.update(deltaTime, body);
             camera.updateView();
             camera.updateProjection();
             transformation.updateModelMatrix();
             render.beginFrame(camera);
-            if (limbDemo) drawBody(render, body, transformation);
+            if (limbDemo) drawBody(render, body, transformation, player.heightOffset());
             else if (cubeDemo) drawCubeDemo(render, transformation);
             else render.drawMesh(transformation.modelMatrix, material);
 

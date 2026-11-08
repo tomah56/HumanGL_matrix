@@ -32,6 +32,8 @@ SRC =	src/main.cpp\
 		src/window/Window.cpp\
 		src/inputHandler/InputHandler.cpp\
 		src/inputHandler/LimbControls.cpp\
+		src/animation/Sequence.cpp\
+		src/animation/Motions.cpp\
 		src/shaders/Shader.cpp\
 		src/shaders/ShaderProgram.cpp\
 		src/render/Render.cpp\
@@ -51,7 +53,7 @@ OBJ_DIR = obj
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 TEST_NAMES = $(OBJ_DIR)/tests/testMatrixTransform $(OBJ_DIR)/tests/testMatrixStack \
 	$(OBJ_DIR)/tests/testUnitCube $(OBJ_DIR)/tests/testArm $(OBJ_DIR)/tests/testHumanoid \
-	$(OBJ_DIR)/tests/testLimbControls
+	$(OBJ_DIR)/tests/testLimbControls $(OBJ_DIR)/tests/testSequence
 TEST_RENDER = $(OBJ_DIR)/tests/testRender
 TEST_OBJ = $(TEST_NAMES:%=%.o) $(TEST_RENDER).o
 TEST_SUPPORT = $(OBJ_DIR)/src/matrixMath/MatrixTransform.o \
@@ -78,6 +80,7 @@ test: $(TEST_NAMES)
 	./$(OBJ_DIR)/tests/testArm
 	./$(OBJ_DIR)/tests/testHumanoid
 	./$(OBJ_DIR)/tests/testLimbControls
+	./$(OBJ_DIR)/tests/testSequence
 
 $(OBJ_DIR)/tests/testMatrixTransform: $(OBJ_DIR)/tests/testMatrixTransform.o $(TEST_SUPPORT)
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -94,7 +97,10 @@ $(OBJ_DIR)/tests/testArm: $(OBJ_DIR)/tests/testArm.o $(OBJ_DIR)/src/scene/Arm.o 
 $(OBJ_DIR)/tests/testHumanoid: $(OBJ_DIR)/tests/testHumanoid.o $(OBJ_DIR)/src/scene/Humanoid.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJ_DIR)/tests/testLimbControls: $(OBJ_DIR)/tests/testLimbControls.o $(OBJ_DIR)/src/inputHandler/LimbControls.o $(OBJ_DIR)/src/scene/Humanoid.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
+$(OBJ_DIR)/tests/testLimbControls: $(OBJ_DIR)/tests/testLimbControls.o $(OBJ_DIR)/src/inputHandler/LimbControls.o $(OBJ_DIR)/src/animation/Sequence.o $(OBJ_DIR)/src/scene/Humanoid.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(OBJ_DIR)/tests/testSequence: $(OBJ_DIR)/tests/testSequence.o $(OBJ_DIR)/src/animation/Sequence.o $(OBJ_DIR)/src/animation/Motions.o $(OBJ_DIR)/src/inputHandler/LimbControls.o $(OBJ_DIR)/src/scene/Humanoid.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 test-render: $(TEST_RENDER)

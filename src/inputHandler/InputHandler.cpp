@@ -1,5 +1,6 @@
 #include "InputHandler.hpp"
 #include "InputData.hpp"
+#include "../animation/Motions.hpp"
 #include <iostream>
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
@@ -15,7 +16,30 @@ InputHandler &InputHandler::getInstance() {
 void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, int action, int mods) {
 	(void)scancode;
 
-    if (inputData->body && inputData->limbControls.handleKey(*inputData->body, key, action, mods)) return;
+    if (inputData->body && inputData->player && action == GLFW_PRESS
+        && !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER))) {
+        switch (key) {
+            case GLFW_KEY_F5:
+                inputData->player->play(animation::walkingSequence(), *inputData->body);
+                return;
+            case GLFW_KEY_F6:
+                inputData->player->play(animation::jumpingSequence(), *inputData->body);
+                return;
+            case GLFW_KEY_F7: {
+                inputData->player->stop();
+                animation::standStill(*inputData->body);
+                auto &transformation = *inputData->transformation;
+                if (transformation.animationState.isRotate) {
+                    transformation.transform.rotationY = transformation.transform.baseRotationY
+                        + transformation.animationState.rotation;
+                    transformation.animationState.isRotate = false;
+                }
+                return;
+            }
+        }
+    }
+    if (inputData->body && inputData->limbControls.handleKey(
+        *inputData->body, key, action, mods, inputData->player)) return;
 
     if (inputData->body && (action == GLFW_PRESS || action == GLFW_REPEAT)
         && !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER))) {

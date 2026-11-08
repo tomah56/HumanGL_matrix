@@ -1,11 +1,13 @@
 #include "LimbControls.hpp"
 #include "../scene/Humanoid.hpp"
+#include "../animation/Sequence.hpp"
 
 #include <algorithm>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-bool LimbControls::handleKey(Humanoid &body, int key, int action, int mods) {
+bool LimbControls::handleKey(Humanoid &body, int key, int action, int mods,
+                             animation::SequencePlayer *player) {
     const bool held = action != GLFW_RELEASE;
     switch (key) {
         case GLFW_KEY_L: _leftHeld = held; break;
@@ -25,6 +27,7 @@ bool LimbControls::handleKey(Humanoid &body, int key, int action, int mods) {
         case GLFW_KEY_3: dimensions.forearm.length = std::max(0.2f, dimensions.forearm.length - 0.1f); return true;
         case GLFW_KEY_4: dimensions.forearm.length += 0.1f; return true;
         case GLFW_KEY_0:
+            if (player) player->stop();
             dimensions = ArmDimensions{};
             body.pose = HumanoidPose{};
             return true;
@@ -35,10 +38,13 @@ bool LimbControls::handleKey(Humanoid &body, int key, int action, int mods) {
     if (!arm && !leg) return false;
     // Movement requires exactly one held side; there is no latched selection.
     if (_leftHeld == _rightHeld) return true;
-    ArmPose &pose = arm ? (_leftHeld ? body.pose.leftArm : body.pose.rightArm)
-                       : (_leftHeld ? body.pose.leftLeg : body.pose.rightLeg);
     const bool lower = _leftHeld ? _kHeld : _tHeld;
-    GLfloat &angle = lower ? pose.elbowDegrees : pose.shoulderDegrees;
-    angle += (key == GLFW_KEY_A || key == GLFW_KEY_Q) ? 5.0f : -5.0f;
+    const Joint joint = arm
+        ? (_leftHeld ? (lower ? Joint::LeftElbow : Joint::LeftShoulder)
+                     : (lower ? Joint::RightElbow : Joint::RightShoulder))
+        : (_leftHeld ? (lower ? Joint::LeftKnee : Joint::LeftHip)
+                     : (lower ? Joint::RightKnee : Joint::RightHip));
+    if (player) player->stop();
+    body.moveJoint(joint, (key == GLFW_KEY_A || key == GLFW_KEY_Q) ? 5.0f : -5.0f);
     return true;
 }

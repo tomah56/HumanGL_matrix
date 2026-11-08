@@ -2,6 +2,11 @@
 
 #include "Arm.hpp"
 
+enum class Joint {
+    LeftShoulder, LeftElbow, RightShoulder, RightElbow,
+    LeftHip, LeftKnee, RightHip, RightKnee, Count
+};
+
 struct HumanoidPose {
     ArmPose leftArm;
     ArmPose rightArm;
@@ -17,6 +22,10 @@ public:
     SegmentDimensions head = {0.6f, 0.7f, 0.6f};
     ArmDimensions limbDimensions;
     HumanoidPose pose;
+
+    GLfloat jointAngle(Joint joint) const;
+    void setJointAngle(Joint joint, GLfloat angle);
+    void moveJoint(Joint joint, GLfloat delta);
 
     // Torso, left arm, right arm, left leg, right leg (two models per limb), head.
     // Geometry scaling stays out of the attachment frames.

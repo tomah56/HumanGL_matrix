@@ -48,6 +48,9 @@ The previous `--arms` and `--arm` commands are aliases for the same scene.
 | Hold R + Q / E | Right thigh forward / back. |
 | Hold L + K + Q / E | Left lower leg forward / back. |
 | Hold R + T + Q / E | Right lower leg forward / back. |
+| F5 | Start/restart the looping walk in place. |
+| F6 | Start/restart the jump; finish standing still. |
+| F7 | Stop playback and stand still. |
 | 1 / 2 | Shorten / lengthen upper arms and thighs together. |
 | 3 / 4 | Shorten / lengthen forearms and lower legs together. |
 | 0 | Restore all four limbs' default joint angles and dimensions. |
@@ -61,6 +64,9 @@ Release K to control the left upper arm again. Movement requires exactly one
 held side; no side is selected after releasing L/R. Upper segments carry their
 lower segments; moving a lower segment leaves every other part unchanged.
 Joint keys support holding/repeat; length controls stop at 0.2 world units.
+Manual joint movement or `0` stops playback and removes the jump offset.
+Selecting a limb, resizing, and rotating remain available during playback.
+On keyboards with media keys, you may need Fn with F5/F6/F7.
 Widths, depths, lengths, and initial pose can also be edited in
 [Arm.hpp](src/scene/Arm.hpp). All four limbs use identical rotations about local X;
 positive control angles bend forward along local +Z. The initial view is slightly
@@ -70,17 +76,46 @@ the arms using torso width plus upper-arm width, and the legs using torso width.
 Head dimensions are configured there too. Torso geometry scaling does not
 stretch the head or attached limbs.
 
+## Define a movement sequence in C++
+
+Edit [Motions.cpp](src/animation/Motions.cpp) to change walking and jumping.
+Each step moves all listed joints together toward absolute angles in degrees;
+its first argument is the duration in seconds. Omitted joints keep their angles:
+
+```cpp
+using namespace animation;
+Sequence movement = repeat({
+    step(0.4, {to(Joint::LeftHip, 25), to(Joint::RightHip, -25)}),
+    step(0.4, {to(Joint::LeftHip, -25), to(Joint::RightHip, 25)})
+});
+player.play(movement, body);
+```
+
+Use `once({...})` to stop at the final pose. The optional third argument to
+`step()` is a world-space height offset, such as `step(0.3, {...}, 1.1f)` for a
+jump apex. A new sequence starts from the current joint angles and zero height
+offset. The jump crouches, rises, lands, and straightens; walking repeats in place.
+The initial view leaves room for the jump.
+
+The main loop calls `player.update(deltaTime, body)` before drawing. Playback
+interpolates from each step's starting angles, carries leftover time into later
+steps, and loops without angle drift. Keyboard movement calls
+`body.moveJoint(joint, delta)`; playback uses the same underlying
+`body.setJointAngle(joint, angle)` API. Input and rendering continue throughout.
+
+## Other demo modes and checks
+
 The earlier shared-cube demo remains available with `./humangl --cubes`.
 This shows three colored cubes using one shared unit-cube mesh and a matrix
 stack. The center cube and two sibling branches have independent local scales;
 the left branch also has a local rotation. Drag with the mouse to rotate the
 group; Cmd/Ctrl+R enables or disables automatic rotation. No OBJ/BMP is needed.
 
-Run `make test` for projection/scaling, matrix-stack, cube-geometry, and limb checks.
+Run `make test` for projection/scaling, matrix-stack, cube-geometry, limb, and sequence checks.
 They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
 `make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
-one draw per cube, ten-part body rendering, and stack preservation. It needs a display
+one draw per cube, ten-part body rendering, the jump apex, and stack preservation. It needs a display
 session. On a Linux machine with Xvfb/Mesa installed, run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
 
@@ -141,7 +176,8 @@ to attach both pairs and the head to the torso and return all ten model matrices
 `HumanoidPose` stores separate left/right arm and leg poses. The builder evaluates
 the same two-part chain once per limb with shared `limbDimensions`.
 
-Idle/walk/jump animation is the next implementation stage. Known inherited maths issues and current
+The C++ sequence player provides walking in place, jumping, and standing still.
+Physical input and the full acceptance checklist remain to verify. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters
 describe tests for body, stack, and animation features still to implement.

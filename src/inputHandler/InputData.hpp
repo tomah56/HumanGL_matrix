@@ -11,6 +11,7 @@ class Material;
 class Camera;
 class InputHandler;
 class Humanoid;
+namespace animation { class SequencePlayer; }
 
 struct InputData {
     Transformation* transformation;
@@ -18,6 +19,7 @@ struct InputData {
     Camera* camera;
     InputHandler* inputHandler;
     Humanoid* body = nullptr;
+    animation::SequencePlayer* player = nullptr;
     LimbControls limbControls;
 
     InputData(Transformation* t, Material* m, Camera* c)

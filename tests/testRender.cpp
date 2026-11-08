@@ -2,6 +2,7 @@
 #include "../src/render/Render.hpp"
 #include "../src/render/UnitCube.hpp"
 #include "../src/scene/Humanoid.hpp"
+#include "../src/animation/Motions.hpp"
 
 #include <array>
 #include <iostream>
@@ -146,13 +147,37 @@ int main() {
                 "Complete body must use exactly ten shared-cube draws without new uploads");
         require(glGetError() == GL_NO_ERROR, "Limb rendering raised an OpenGL error");
 
+        animation::SequencePlayer player;
+        player.play(animation::jumpingSequence(), body);
+        player.update(0.48, body);
+        MatrixStack root;
+        root.translate(0.0f, 1.3f, -11.0f);
+        MatrixStack elevated;
+        elevated.translate(0.0f, player.heightOffset(), 0.0f);
+        elevated.multiply(root.top());
+        const auto jumpModels = body.modelMatrices(elevated);
+        render.beginFrame(camera);
+        for (std::size_t part = 0; part < jumpModels.size(); ++part) {
+            MatrixStack segment;
+            segment.load(jumpModels[part]);
+            render.drawUnitCube(segment, part == 0 ? std::array<GLfloat, 3>{0.2f, 0.8f, 0.4f}
+                                       : part == 9 ? std::array<GLfloat, 3>{0.95f, 0.8f, 0.55f}
+                                                  : colors[(part - 1) % colors.size()]);
+        }
+        expectPixel(320, 438, {242, 204, 140});
+        expectPixel(320, 370, {51, 204, 102});
+        expectPixel(320, 475, {0, 0, 0});
+        require(draws == 23 && clears == 4 && uploads == 0 && indexedCubeDraws,
+                "Jumping body keeps ten shared-cube draws without geometry uploads");
+        require(glGetError() == GL_NO_ERROR, "Jump rendering raised an OpenGL error");
+
         render.cleanUp();
         render.cleanUp();
         require(glIsProgram(shader.getShaderProgram()), "Renderer must not delete a borrowed shader program");
         shader.deleteShaderProgram();
         require(glGetError() == GL_NO_ERROR, "Resource cleanup raised an OpenGL error");
         std::cout << "Passed shared-cube pixels, draw counts, VAO reuse, stack preservation, "
-                     "legacy mesh mode, complete body, and cleanup checks.\n";
+                     "legacy mesh mode, complete body, jump apex, and cleanup checks.\n";
         return 0;
     } catch (const std::exception &error) {
         std::cerr << "Render test failed: " << error.what() << '\n';
