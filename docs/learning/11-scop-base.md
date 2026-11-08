@@ -80,8 +80,9 @@ establish correctness of every matrix operation or the future hierarchy.
    without mutation. The `--cubes` demo draws independent siblings from a shared
    parent. `--limbs` (also `--arms` or `--arm`) reuses the two-part chain four
    times: two arms and two identical legs beneath them. All share dimensions,
-   controls, and forward-bending angles. Completing the torso/head and their
-   attachments remains the next stage.
+   controls, and forward-bending angles. `Humanoid` now attaches the arm pair to
+   the torso's sides and the leg pair underneath it, drawing nine body parts.
+   The head remains to implement.
 5. **Unit cube — implemented.** The imported OBJ still spans ±1, but
    `makeUnitCubeMesh()` creates fixed ±0.5 geometry and 36 indices. Each renderer
    uploads that cube once. `drawUnitCube(stack, color)` reads the current matrix
@@ -140,18 +141,19 @@ scop classes. Example assets and the original scop project remain unchanged.
    two segment lengths plus `rowGap` (default 0.6). All four chains have identical
    X-axis joint rotations and shared dimensions. Geometry scale is pushed/popped
    separately; change a control to see every limb follow it.
-6. **Build all ten parts.** Add dimensions and pose data plus a `Humanoid` traversal
-   with torso/head, two arm chains, and two leg chains. Calculate attachments from
-   dimensions each frame. Ten body parts must reach the cube drawing method once
-   each; a parent joint must affect only its descendants.
+6. **Complete all ten parts.** Inspect `Humanoid::modelMatrices()`: its centered
+   torso and dimension-derived shoulder/hip attachments connect the four chains.
+   It returns nine models while keeping torso scale out of the limb frames.
+   Add the head and its attachment next. Ten body parts must reach the cube
+   drawing method once each; a parent joint must affect only its descendants.
 7. **Add idle, walk, and jump above rendering.** Evaluate an animation controller
    once per frame using elapsed seconds. Input selects its state. It produces
    joint angles and root movement; the same hierarchy then draws every pose.
 8. **Complete the defense checklist.** Check resizing, inheritance, stack balance,
    drawing calls, and both target platforms before adding bonuses.
 
-The next additions are `Humanoid` beside the scene classes and an animation
-controller. The implemented `MatrixStack` sits beside `MatrixTransform`. Extend the
+The next additions are the head in `Humanoid` and an animation controller.
+The implemented `MatrixStack` sits beside `MatrixTransform`. Extend the
 existing classes rather than introduce another window or rendering framework.
 
 ## Validation so far
@@ -170,7 +172,7 @@ existing classes rather than introduce another window or rendering framework.
 - Linux compilation/rendering and manual interaction results are recorded in
   [the validation chapter](09-validation-and-defense.md). Old triangle-starter
   results do not establish correctness of this replacement base.
-- Two arms and two identical two-part legs are implemented; the complete humanoid and animation
+- The torso, two arms, and two identical two-part legs are implemented; the head and animation
   system remain pending.
 
 ## Shared cube and stack checks
@@ -204,3 +206,9 @@ The subsequent copied-leg stage passed the build, all CPU suites (including
 549 limb assertions), and hidden rendering on macOS/OpenGL 4.1. Its eight-part
 render check verifies shared buffers, one draw per block, and parent preservation.
 This stage has not yet been rerun on Linux or checked with physical input.
+
+The torso stage passed the macOS build, CPU checks including 147 new
+torso/attachment assertions, and the hidden OpenGL 4.1 render check. Its nine
+blocks use nine draws with no geometry reupload. Torso resizing updates the
+shoulder and hip attachments while preserving limb dimensions. This stage has
+not yet been checked on Linux or with physical input.

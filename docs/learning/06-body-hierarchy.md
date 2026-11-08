@@ -25,13 +25,19 @@ upper/forearm. All controls modify the same `Arm` object; matching segments have
 the same orientation and differ only by their shoulder offset in the parent frame.
 This relationship follows the parent when it moves or rotates.
 
-`limbModelMatrices(parent, pairSpacing, rowGap)` evaluates the same pair twice.
+The earlier `limbModelMatrices(parent, pairSpacing, rowGap)` evaluates the same pair twice.
 The second pair uses a parent translated down by
 `upper.length + forearm.length + rowGap`, so the rest-pose gap follows resizing.
 It returns the four arm matrices followed by the four leg matrices. All eight
-blocks use the same drawing method and shared pose. The head, torso, and their
-attachment rules remain to implement; the current legs intentionally move
-exactly like the arms.
+blocks use the same drawing method and shared pose.
+
+The current scene uses [Humanoid.cpp](../../src/scene/Humanoid.cpp) instead:
+its root is the torso center. It scales one cube for the torso, attaches arms at
+`(±(torso.width + upper.width)/2, torso.length/2, 0)`, and places hips at
+`(±torso.width/4, -torso.length/2, 0)`. Both pairs reuse `pairedModelMatrices()`.
+Attachments use the unscaled torso frame, so torso resizing repositions the
+limbs without stretching them. All nine parts inherit root motion. The head
+remains to implement; the legs intentionally share the arms' movement controls.
 
 A joint frame is a moving coordinate system. For a child joint:
 
@@ -158,8 +164,9 @@ scene geometry out of that body count.
 `make test` now includes the two-part arm cases below, plus inherited 3D root
 motion, resizing, isolated elbow movement, preserved forearm dimensions, unchanged
 parent stack, and rejected invalid dimensions/angles. `make test-render` also
-checks the colors of all eight limb blocks, gaps between the pairs, and exactly
-eight indexed draws for the limb scene.
+checks the green torso and all eight limb blocks, the gap between the legs, and
+exactly nine indexed draws for the body scene. `testHumanoid` checks torso-side
+and bottom attachments, resizing, shared poses, and inherited torso rotation.
 
 Build just a shoulder and two arm segments first. Set the shoulder at the origin,
 upper length 2, lower length 1, and both angles to zero. The upper cube center is

@@ -28,8 +28,9 @@ and unit face areas. `testArm` now runs 549 arm/leg hierarchy assertions for
 pivot positions, parent inheritance, isolated elbow rotation, shared resizing,
 matching forward orientations, shoulder spacing, unchanged child dimensions, and
 invalid inputs. These include the copied lower pair, shared movement, resizing,
-row spacing, and inherited root rotation. The complete
-body's remaining joint relationships are still to implement.
+row spacing, and inherited root rotation. `testHumanoid` adds 147 assertions for
+torso-side and bottom attachments, torso and limb resizing, inherited rotation,
+and rejected torso dimensions. The head's attachment remains to implement.
 
 - Matrix identity, point/direction translation, nonuniform scaling, all three
   rotation axes, reversed multiplication order, and rotation around a pivot.
@@ -138,6 +139,12 @@ check. It verifies eight colored limb blocks, the vertical gap, exactly eight
 cube draws, no geometry reupload, and the unchanged parent frame. All four limbs
 share one pose and dimension set. Linux and physical input checks for this
 stage remain pending.
+
+The torso stage passed the macOS build, all CPU suites, and hidden OpenGL 4.1
+rendering. The new hierarchy suite passes 147 assertions; the render check shows
+a green torso, four orange upper segments, four blue lower segments, and exactly
+nine body draws. The torso controls shoulder/hip placement without passing its
+geometry scale to the limbs. Linux and physical input checks remain pending.
 
 For release/defense readiness, also perform one clean rebuild (`make fclean`
 followed by `make`) and verify the documented shader paths from the documented
