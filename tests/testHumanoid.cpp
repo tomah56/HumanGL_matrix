@@ -40,7 +40,7 @@ GLfloat axisLength(const MatrixStack::Matrix &matrix, int axis) {
 int main() {
     try {
         Humanoid body;
-        body.limbs.pose = {0.0f, 0.0f};
+        body.pose = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
         MatrixStack parent;
         const auto original = parent.top();
         auto models = body.modelMatrices(parent);
@@ -78,7 +78,7 @@ int main() {
             require(std::fabs(axisLength(models[upper], 0) - 0.42f) < 1e-5f,
                     "Torso scaling must preserve limb widths");
         }
-        body.limbs.dimensions.upper.width = 0.8f;
+        body.limbDimensions.upper.width = 0.8f;
         models = body.modelMatrices(parent);
         expectPoint(pointAt(models[1], {0.5f, 0.5f, 0}), {-1.0f, 1.2f, 0}, "Resized arm stays at torso side");
 
@@ -93,8 +93,8 @@ int main() {
 
         body = Humanoid{};
         const auto rest = body.modelMatrices(parent);
-        body.limbs.pose = {55.0f, 35.0f};
-        body.limbs.dimensions.upper.length = 2.0f;
+        body.pose = {{55, 35}, {55, 35}, {55, 35}, {55, 35}};
+        body.limbDimensions.upper.length = 2.0f;
         models = body.modelMatrices(parent);
         require(models[0] == rest[0], "Joint movement and limb resizing preserve torso");
         require(models[9] == rest[9], "Joint movement and limb resizing preserve head");
@@ -107,12 +107,12 @@ int main() {
                     "Lower segments keep their lengths after resizing upper segments");
             for (int entry : {0, 1, 2, 4, 5, 6, 8, 9, 10}) {
                 require(std::fabs(models[upper][entry] - models[1][entry]) < 1e-5f,
-                        "All limbs retain identical shared forward rotations");
+                        "Equal poses retain identical forward rotations");
             }
         }
 
         body = Humanoid{};
-        body.limbs.pose = {0.0f, 0.0f};
+        body.pose = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
         parent.translate(5.0f, 3.0f, -4.0f);
         parent.rotateX(90.0f);
         const auto root = parent.top();

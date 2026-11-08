@@ -112,8 +112,8 @@ int main(int args, char* argv[]) {
         }
         if (limbDemo) {
             transformation.transform.translationX = 0.0f;
-            transformation.transform.translationY = (body.limbs.dimensions.upper.length
-                + body.limbs.dimensions.forearm.length) / 2.0f;
+            transformation.transform.translationY = (body.limbDimensions.upper.length
+                + body.limbDimensions.forearm.length) / 2.0f;
             transformation.transform.translationZ = -9.0f;
             transformation.minZ = -20.0f;
             transformation.transform.rotationY = 25.0f;
@@ -121,13 +121,14 @@ int main(int args, char* argv[]) {
         Material material;
         Camera camera((GLfloat)window.getScreenWidth(), (GLfloat)window.getScreenHeight());
         InputData inputData = {&transformation, &material, &camera};
-        if (limbDemo) inputData.arm = &body.limbs;
+        if (limbDemo) inputData.body = &body;
 
         // Set up user input
         window.setUpUserInput(inputData);
         if (limbDemo) {
             cout << "Body: Left/Right rotate (Shift faster). "
-                    "Limbs: Q/E shoulders and hips, A/D elbows and knees, "
+                    "Hold L/R for left/right; L+K or R+T for lower segments. "
+                    "A/D arm forward/back, Q/E leg forward/back. "
                     "1/2 all upper lengths, 3/4 all lower lengths, "
                     "0 reset all four limbs. Escape closes.\n";
         }

@@ -31,8 +31,8 @@ make
 
 This shows a green torso with a tan head on top, two arms touching its sides,
 and two legs attached underneath: ten blocks total. Every limb has an orange upper segment and a blue
-lower segment. All four limbs share one pose and dimension set, bend forward
-along local +Z, and resize together. Shoulders sit at the torso's upper sides;
+lower segment. Each limb has its own joint angles; dimensions remain shared.
+All bend forward along local +Z and resize together. Shoulders sit at the torso's upper sides;
 hips sit along its bottom. The head's base touches the torso's top. Attachment
 positions follow the torso dimensions.
 Each segment is one scaled unit cube; elbows and knees follow the upper length.
@@ -40,8 +40,14 @@ The previous `--arms` and `--arm` commands are aliases for the same scene.
 
 | Limb control | Effect |
 | --- | --- |
-| Q / E | Move shoulders and hips backward / forward together. |
-| A / D | Decrease / increase elbow and knee bends together. |
+| Hold L + A / D | Left upper arm forward / back. |
+| Hold R + A / D | Right upper arm forward / back. |
+| Hold L + K + A / D | Left forearm forward / back. |
+| Hold R + T + A / D | Right forearm forward / back. |
+| Hold L + Q / E | Left thigh forward / back. |
+| Hold R + Q / E | Right thigh forward / back. |
+| Hold L + K + Q / E | Left lower leg forward / back. |
+| Hold R + T + Q / E | Right lower leg forward / back. |
 | 1 / 2 | Shorten / lengthen upper arms and thighs together. |
 | 3 / 4 | Shorten / lengthen forearms and lower legs together. |
 | 0 | Restore all four limbs' default joint angles and dimensions. |
@@ -49,6 +55,11 @@ The previous `--arms` and `--arm` commands are aliases for the same scene.
 | Mouse drag | Rotate the whole group. |
 | Escape | Close the window. |
 
+Hold the side/segment keys while pressing or holding the movement key. For
+example, hold L and K, then press A to bend only the left forearm forward.
+Release K to control the left upper arm again. Movement requires exactly one
+held side; no side is selected after releasing L/R. Upper segments carry their
+lower segments; moving a lower segment leaves every other part unchanged.
 Joint keys support holding/repeat; length controls stop at 0.2 world units.
 Widths, depths, lengths, and initial pose can also be edited in
 [Arm.hpp](src/scene/Arm.hpp). All four limbs use identical rotations about local X;
@@ -127,9 +138,10 @@ identical angles, producing four model matrices from the same control state.
 model matrices with identical joint motion and shared sizing for the earlier
 separated-pair stage. The current scene uses [Humanoid.cpp](src/scene/Humanoid.cpp)
 to attach both pairs and the head to the torso and return all ten model matrices.
+`HumanoidPose` stores separate left/right arm and leg poses. The builder evaluates
+the same two-part chain once per limb with shared `limbDimensions`.
 
-Idle/walk/jump animation is the next implementation
-stages. Known inherited maths issues and current
+Idle/walk/jump animation is the next implementation stage. Known inherited maths issues and current
 validation limits are recorded in the
 [scop adaptation guide](docs/learning/11-scop-base.md). Later learning chapters
 describe tests for body, stack, and animation features still to implement.

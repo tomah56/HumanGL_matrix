@@ -115,7 +115,7 @@ int main() {
         require(glGetError() == GL_NO_ERROR, "Rendering raised an OpenGL error");
 
         Humanoid body;
-        body.limbs.pose = {0.0f, 60.0f};
+        body.pose = {{0, 60}, {0, 60}, {0, 60}, {0, 60}};
         stack.reset();
         stack.translate(0.0f, 1.3f, -9.0f);
         const auto limbRoot = stack.top();

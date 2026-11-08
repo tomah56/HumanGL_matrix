@@ -1,7 +1,5 @@
 #include "InputHandler.hpp"
 #include "InputData.hpp"
-#include "../scene/Arm.hpp"
-#include <algorithm>
 #include <iostream>
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
@@ -17,9 +15,10 @@ InputHandler &InputHandler::getInstance() {
 void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, int action, int mods) {
 	(void)scancode;
 
-    if (inputData->arm && (action == GLFW_PRESS || action == GLFW_REPEAT)
+    if (inputData->body && inputData->limbControls.handleKey(*inputData->body, key, action, mods)) return;
+
+    if (inputData->body && (action == GLFW_PRESS || action == GLFW_REPEAT)
         && !(mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER))) {
-        Arm &arm = *inputData->arm;
         switch (key) {
             case GLFW_KEY_LEFT:
             case GLFW_KEY_RIGHT: {
@@ -33,19 +32,6 @@ void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, i
                 }
                 return;
             }
-            case GLFW_KEY_Q: arm.pose.shoulderDegrees -= 5.0f; return;
-            case GLFW_KEY_E: arm.pose.shoulderDegrees += 5.0f; return;
-            case GLFW_KEY_A: arm.pose.elbowDegrees -= 5.0f; return;
-            case GLFW_KEY_D: arm.pose.elbowDegrees += 5.0f; return;
-            case GLFW_KEY_1:
-                arm.dimensions.upper.length = std::max(0.2f, arm.dimensions.upper.length - 0.1f);
-                return;
-            case GLFW_KEY_2: arm.dimensions.upper.length += 0.1f; return;
-            case GLFW_KEY_3:
-                arm.dimensions.forearm.length = std::max(0.2f, arm.dimensions.forearm.length - 0.1f);
-                return;
-            case GLFW_KEY_4: arm.dimensions.forearm.length += 0.1f; return;
-            case GLFW_KEY_0: arm = Arm{}; return;
         }
     }
 
