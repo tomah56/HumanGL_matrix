@@ -6,6 +6,7 @@ CXXFLAGS = -Wall -Werror -Wextra -MMD -MP
 UNAME_S := $(shell uname -s)
 
 GLAD_INCLUDE = -Iinclude
+GUI_INCLUDE = -Ithird_party/imgui -Ithird_party/imgui/backends
 
 PKG_CONFIG ?= pkg-config
 GLFW_INCLUDE = $(shell $(PKG_CONFIG) --cflags glfw3 2>/dev/null)
@@ -17,6 +18,7 @@ ifeq ($(UNAME_S),Darwin)
 
 else
 	CXXFLAGS += -std=c++2a
+	GLFW_LIB += -ldl
 endif
 
 GREEN = \033[0;32m
@@ -34,6 +36,7 @@ SRC =	src/main.cpp\
 		src/inputHandler/LimbControls.cpp\
 		src/animation/Sequence.cpp\
 		src/animation/Motions.cpp\
+		src/gui/ControlsPanel.cpp\
 		src/shaders/Shader.cpp\
 		src/shaders/ShaderProgram.cpp\
 		src/render/Render.cpp\
@@ -48,6 +51,10 @@ SRC =	src/main.cpp\
 		src/scene/Humanoid.cpp\
 		src/scene/Camera.cpp
 
+SRC += third_party/imgui/imgui.cpp third_party/imgui/imgui_draw.cpp \
+	third_party/imgui/imgui_tables.cpp third_party/imgui/imgui_widgets.cpp \
+	third_party/imgui/backends/imgui_impl_glfw.cpp third_party/imgui/backends/imgui_impl_opengl3.cpp
+
 OBJ_DIR = obj
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
@@ -55,7 +62,8 @@ TEST_NAMES = $(OBJ_DIR)/tests/testMatrixTransform $(OBJ_DIR)/tests/testMatrixSta
 	$(OBJ_DIR)/tests/testUnitCube $(OBJ_DIR)/tests/testArm $(OBJ_DIR)/tests/testHumanoid \
 	$(OBJ_DIR)/tests/testLimbControls $(OBJ_DIR)/tests/testSequence
 TEST_RENDER = $(OBJ_DIR)/tests/testRender
-TEST_OBJ = $(TEST_NAMES:%=%.o) $(TEST_RENDER).o
+TEST_GUI = $(OBJ_DIR)/tests/testControlsPanel
+TEST_OBJ = $(TEST_NAMES:%=%.o) $(TEST_RENDER).o $(TEST_GUI).o
 TEST_SUPPORT = $(OBJ_DIR)/src/matrixMath/MatrixTransform.o \
 	$(OBJ_DIR)/src/scene/Camera.o $(OBJ_DIR)/src/scene/Transformation.o
 DEP = $(OBJ:.o=.d) $(TEST_OBJ:.o=.d)
@@ -103,15 +111,19 @@ $(OBJ_DIR)/tests/testLimbControls: $(OBJ_DIR)/tests/testLimbControls.o $(OBJ_DIR
 $(OBJ_DIR)/tests/testSequence: $(OBJ_DIR)/tests/testSequence.o $(OBJ_DIR)/src/animation/Sequence.o $(OBJ_DIR)/src/animation/Motions.o $(OBJ_DIR)/src/inputHandler/LimbControls.o $(OBJ_DIR)/src/scene/Humanoid.o $(OBJ_DIR)/src/scene/Arm.o $(OBJ_DIR)/src/matrixMath/MatrixStack.o $(OBJ_DIR)/src/matrixMath/MatrixTransform.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-test-render: $(TEST_RENDER)
+test-render: $(TEST_RENDER) $(TEST_GUI)
 	./$(TEST_RENDER)
+	./$(TEST_GUI)
 
 $(TEST_RENDER): $(TEST_RENDER).o $(filter-out $(OBJ_DIR)/src/main.o,$(OBJ))
 	$(CXX) $(CXXFLAGS) $^ $(GLFW_LIB) -o $@
 
+$(TEST_GUI): $(TEST_GUI).o $(filter-out $(OBJ_DIR)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $^ $(GLFW_LIB) -o $@
+
 $(OBJ_DIR)/%.o: %.cpp Makefile | $(OBJ_DIR) check-deps
 	@mkdir -p $(dir $@)
-	@$(CXX) $(CXXFLAGS) $(GLAD_INCLUDE) $(GLFW_INCLUDE) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) $(GLAD_INCLUDE) $(GLFW_INCLUDE) $(GUI_INCLUDE) -c $< -o $@
 
 -include $(DEP)
 

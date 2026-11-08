@@ -70,6 +70,7 @@ public:
 	int getScreenWidth() const;
 	int getScreenHeight() const;
 	void getFramebufferSize(int &width, int &height) const;
+	GLFWwindow *nativeHandle() const { return _window; }
 
 	void setUpUserInput(InputData &inputData);
 	bool windowShouldClose() const;

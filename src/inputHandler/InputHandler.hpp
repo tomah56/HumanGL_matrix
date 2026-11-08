@@ -9,6 +9,8 @@ struct InputData;
 class InputHandler {
 public:
     static InputHandler &getInstance();
+    // Shared entry point for on-screen buttons and keyboard commands.
+    void pressKey(InputData &inputData, int key, int mods = 0);
 
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);

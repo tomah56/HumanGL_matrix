@@ -16,6 +16,7 @@
 #include "scene/Humanoid.hpp"
 #include "animation/Sequence.hpp"
 #include "inputHandler/InputData.hpp"
+#include "gui/ControlsPanel.hpp"
 
 using namespace std;
 
@@ -132,6 +133,8 @@ int main(int args, char* argv[]) {
 
         // Set up user input
         window.setUpUserInput(inputData);
+        unique_ptr<ControlsPanel> controls;
+        if (limbDemo) controls = make_unique<ControlsPanel>(window.nativeHandle());
         if (limbDemo) {
             cout << "Body: Left/Right rotate (Shift faster). "
                     "C walk, V jump, B stand still, N arm-wave dance, M greeting wave. "
@@ -155,8 +158,13 @@ int main(int args, char* argv[]) {
                 prevTime = glfwGetTime();
                 continue;
             }
-            glViewport(0, 0, width, height);
-            camera.updateAspect(static_cast<GLfloat>(width), static_cast<GLfloat>(height));
+            if (controls) {
+                controls->beginFrame();
+                controls->draw(inputData);
+            }
+            const int sceneWidth = controls ? controls->sceneFramebufferWidth() : width;
+            glViewport(0, 0, sceneWidth, height);
+            camera.updateAspect(static_cast<GLfloat>(sceneWidth), static_cast<GLfloat>(height));
 
             double currentTime = glfwGetTime();
             double deltaTime = currentTime - prevTime;
@@ -171,6 +179,7 @@ int main(int args, char* argv[]) {
             if (limbDemo) drawBody(render, body, transformation, player.heightOffset());
             else if (cubeDemo) drawCubeDemo(render, transformation);
             else render.drawMesh(transformation.modelMatrix, material);
+            if (controls) controls->render();
 
             // Swap front and back buffers
             window.swapBuffers();
@@ -178,6 +187,7 @@ int main(int args, char* argv[]) {
         }
 
         if (texture) texture->unbindTexture();
+        controls.reset();
         render.cleanUp();
         shaderProgram.deleteShaderProgram();
         return 0;

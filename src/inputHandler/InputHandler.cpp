@@ -1,6 +1,7 @@
 #include "InputHandler.hpp"
 #include "InputData.hpp"
 #include "../animation/Motions.hpp"
+#include "imgui.h"
 #include <iostream>
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
@@ -11,6 +12,10 @@ InputHandler::InputHandler() { }
 InputHandler &InputHandler::getInstance() {
 	static InputHandler instance;
 	return instance;
+}
+
+void InputHandler::pressKey(InputData &inputData, int key, int mods) {
+    handleKeyInput(&inputData, key, 0, GLFW_PRESS, mods);
 }
 
 void InputHandler::handleKeyInput(InputData* inputData, int key, int scancode, int action, int mods) {
@@ -162,6 +167,9 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 	InputData* inputData = static_cast<InputData*>(glfwGetWindowUserPointer(window));
 	if (!inputData) return;
 
+    // Releases still clear held L/R/K/T selectors when a UI widget has focus.
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard && action != GLFW_RELEASE) return;
+
 	// Close by ESC
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
@@ -175,6 +183,12 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 
 	InputData* inputData= static_cast<InputData*>(glfwGetWindowUserPointer(window));
 	if (!inputData) return;
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        inputData->transformation->dragState.isDragging = false;
+        return;
+    }
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureMouse) return;
 
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (action == GLFW_PRESS) {
@@ -194,6 +208,7 @@ void InputHandler::scroll_callback(GLFWwindow* window, double xoffset, double yo
 
 	InputData* inputData = static_cast<InputData*>(glfwGetWindowUserPointer(window));
 	if (!inputData) return;
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureMouse) return;
 
 	const float scrollSensitivity = 0.1f;
 
@@ -208,6 +223,7 @@ void InputHandler::cursor_position_callback(GLFWwindow *window, double xPos, dou
 
 	InputData* inputData = static_cast<InputData*>(glfwGetWindowUserPointer(window));
 	if (!inputData) return;
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureMouse) return;
 
 	getInstance().handleMouseMove(inputData, xPos, yPos);
 }

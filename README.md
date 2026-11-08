@@ -38,6 +38,14 @@ positions follow the torso dimensions.
 Each segment is one scaled unit cube; elbows and knees follow the upper length.
 The previous `--arms` and `--arm` commands are aliases for the same scene.
 
+A scrollable controls panel appears beside the 3D view. It shows the shortcuts
+below and offers clickable animation buttons, independent joint buttons, body
+rotation/position controls, shared limb-size controls, reset, and close.
+Click or hold `+5` / `-5` to move a joint with the mouse. The expandable sideways
+arm section also controls the shoulder/elbow rotations used by the waves.
+Keyboard controls remain available alongside the panel. Scroll over the panel
+for more controls; drag or scroll over the 3D view to rotate or zoom the body.
+
 | Limb control | Effect |
 | --- | --- |
 | Hold L + A / D | Left upper arm forward / back. |
@@ -121,8 +129,10 @@ group; Cmd/Ctrl+R enables or disables automatic rotation. No OBJ/BMP is needed.
 Run `make test` for projection/scaling, matrix-stack, cube-geometry, limb, and sequence checks.
 They exercise the CPU code without opening a window or linking OpenGL/GLFW;
 the project's development headers are still needed to compile the scene classes.
-`make test-render` uses a hidden OpenGL window to check pixels, shared buffers,
-one draw per cube, ten-part body rendering, the jump apex, and stack preservation. It needs a display
+`make test-render` uses hidden OpenGL windows to check pixels, shared buffers,
+one draw per cube, ten-part body rendering, the jump apex, and stack preservation.
+It also checks the controls panel, mouse clicks for playback and individual
+joints, shared keyboard actions, input capture, and cleanup. It needs a display
 session. On a Linux machine with Xvfb/Mesa installed, run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a make test-render`.
 
@@ -141,6 +151,9 @@ changes model Z, despite the original viewer describing it as scaling.
 `make clean`, `make fclean`, and `make re` retain scop's build workflow. The
 generated loader is `glad.cpp` with headers in `include/`; it does not need
 regeneration. All assets needed by the example command are included.
+The controls panel uses vendored [Dear ImGui](third_party/imgui/README.humangl.md)
+with its [MIT license](third_party/imgui/LICENSE.txt); building needs no download
+or extra installed GUI package.
 
 ## What is reused
 
